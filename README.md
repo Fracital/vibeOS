@@ -49,9 +49,9 @@ Additionally, you can email `contact@ctaetcsh.xyz`. Communications are managed b
 
 | GitHub     	| Name                  	| Title                         	|
 |------------	|-----------------------	|-------------------------------	|
-| @vibedivde 	| The Mysterious Divide 	| Creator & Lead Developer      	|
-| @ctaetcsh  	| Nathan M. (ctaetcsh)  	| Developer, Designer & Manager 	|
-| @deopdeop  	| Ryan W. (LinuxTerm)   	| Developer                     	|
+| @e9x			| The Mysterious Divide 	| Creator & Lead Developer      	|
+| @ctaetcsh		| Nathan M. (ctaetcsh)  	| Developer, Designer & Manager 	|
+| @deopdeop		| Ryan W. (LinuxTerm)   	| Developer                     	|
 
 Additionally, thank you to our Beta Testers:
 ```

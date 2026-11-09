@@ -278,7 +278,7 @@ var initReadmeViewer=()=>{
         'If you would like to contribute to vibeOS, feel free to make a Pull Request with your changes and we will take a look. If you want to join our team, get in touch.',
         ' ',
         '> Bug Reports & Feedback',
-        'If you encounter a bug or problem with vibeOS, do not hesitate to open an Issue on our GitHub (https://github.com/vibedivde/vibeOS/issues). If said bug is of a critical nature, please get in touch as soon as possible.',
+        'If you encounter a bug or problem with vibeOS, do not hesitate to open an Issue on our GitHub (https://github.com/Fracital/vibeOS/issues). If said bug is of a critical nature, please get in touch as soon as possible.',
         'Feedback & Suggestions are welcome!',
         ' ',
         '> Contact',
