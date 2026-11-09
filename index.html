@@ -92,7 +92,11 @@ body {
 		<script src='scripts/constructors.js'></script>
 		<script src='scripts/downscale.js'></script>
 		
-		<script src='scripts/v86_all.js'></script>
+		<!-- v86 (https://copy.sh/v86/) emulator core, vendored in scripts/v86/ -->
+		<!-- libcurl.js + wisp relay: fetches disk images from hosts without CORS headers (see scripts/relay.js) -->
+		<script src='scripts/net/libcurl.js'></script>
+		<script src='scripts/relay.js'></script>
+		<script src='scripts/v86/libv86.js'></script>
 		<script src='scripts/v86.js'></script>
 		
 		<script src='scripts/web.js'></script>

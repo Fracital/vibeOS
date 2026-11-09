@@ -1,0 +1,1 @@
+Read AGENTS.md and STYLE.md before doing anything in this repository. AGENTS.md holds the git policy (no commits or pushes without explicit authorization), the writing rules (no em dashes, do not edit README.md) and the project layout.

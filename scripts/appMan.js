@@ -31,6 +31,11 @@ var startEntries = [
 					icon: 'apps/16/bash.png',
 					func: initLinuxVM,
 				},
+				{
+					value: 'Windows 95',
+					icon: 'apps/16/bash.png',
+					func: ()=>{ initLinuxVM('windows95') },
+				},
 			],
 		},
 		{
@@ -172,6 +177,47 @@ var startEntries = [
 					func: ()=>{
 						initWebView('Tetris', 'categories/16/applications-games.png', 'appfiles/breakout/index.html', 700, 570, false)
 					},
+				},
+				// boot-floppy games running in the emulator (images from https://copy.sh/v86/)
+				{
+					value: 'Floppy Bird',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('floppybird') },
+				},
+				{
+					value: 'TetrOS',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('tetros') },
+				},
+				{
+					value: 'Invaders',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('invaders') },
+				},
+				{
+					value: 'Pillman',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('pillman') },
+				},
+				{
+					value: 'bootRogue',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('bootrogue') },
+				},
+				{
+					value: 'dino',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('dino') },
+				},
+				{
+					value: 'BootChess',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('bootchess') },
+				},
+				{
+					value: 'DOOF',
+					icon: 'categories/16/applications-games.png',
+					func: ()=>{ initLinuxVM('doof') },
 				},
 			],
 		},

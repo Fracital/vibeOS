@@ -1,0 +1,6 @@
+# vendored and ported code keeps its upstream formatting
+appfiles/
+scripts/v86/
+scripts/net/
+tango/
+preview/
