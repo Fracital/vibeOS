@@ -19,10 +19,16 @@ rustls 0.23.29
 ./epoxy-tls/0051-client-announce-Chrome-s-HTTP-2-SETTINGS-and-connect.patch
 ./epoxy-tls/0052-client-send-request-fields-in-the-caller-s-order-wit.patch
 ./epoxy-tls/0053-client-Chrome-s-TLS-ClientHello-X25519MLKEM768-and-b.patch
+./epoxy-tls/0054-websocket-hand-onclose-the-server-s-close-status-and.patch
+./epoxy-tls/0055-client-connect-to-an-IPv6-literal-without-the-URL-s-.patch
+./epoxy-tls/0056-client-real-ECH-from-the-host-s-HTTPS-record-retried.patch
+./epoxy-tls/0057-wisp-split-writes-into-packets-of-64-KiB-each-within.patch
 ./epoxy-transport/0001-Build-against-the-sibling-epoxy-tls-checkout-epoxy-t.patch
 ./epoxy-transport/0002-init-load-the-wasm-module-and-build-the-client-once-.patch
 ./epoxy-transport/0003-connect-report-the-subprotocol-the-server-chose.patch
 ./epoxy-transport/0050-Say-which-Chrome-request-fields-the-build-handles-fi.patch
+./epoxy-transport/0051-connect-pass-the-server-s-close-code-and-reason-to-o.patch
+./epoxy-transport/0052-ech_dns-ECH-configs-from-HTTPS-records-over-DoH-pem_.patch
 ./h2-wasm/0050-client-send-pseudo-headers-in-Chrome-s-order-method-.patch
 ./h2-wasm/0051-client-open-each-request-with-a-HEADERS-priority-as-.patch
 ./h2-wasm/0052-client-hang-each-request-stream-in-Chrome-s-priority.patch
@@ -32,4 +38,6 @@ rustls 0.23.29
 ./hyper/0001-client-read-a-lone-CR-in-a-response-head-as-Chrome-d.patch
 ./hyper/0050-client-title-case-HTTP-1-field-names-as-Chrome-spell.patch
 ./rustls/0050-client-optional-Chrome-shaped-ClientHello-ClientConf.patch
-stomp-h3 a838baec940d
+./rustls/0051-crypto-HPKE-on-ring-for-Encrypted-Client-Hello-the-s.patch
+./rustls/0052-client-real-ECH-in-a-Chrome-shaped-hello-as-BoringSS.patch
+stomp-h3 f7e6d279d1b0
