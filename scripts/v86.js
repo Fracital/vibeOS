@@ -386,7 +386,6 @@ var initLinuxVM = (profileName)=>{
 			}
 
 			wino.render(window);
-			wino.interactable.index = 30;
 
 			// status message after the menu so it sits on top of the menu bar
 
@@ -401,6 +400,7 @@ var initLinuxVM = (profileName)=>{
 		vmWindow.width = 640;
 		vmWindow.height = 400 + vmMenuHeight + 10;
 		vmWindow.bgColor = 'black';
+		vmWindow.resizable = false; // the window follows the size of the VM display
 		vmWindow.icon = 'apps/24/bash.png';
 		vmWindow.y = 26;
 

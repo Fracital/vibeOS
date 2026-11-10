@@ -3,10 +3,10 @@ var initTextEditor = ()=>{
 		
     });
 
-    demoWindow.title = 'Text Editor';
-    demoWindow.width = 800;
-    demoWindow.height = 600;
-    demoWindow.x = msize.w / 2 - demoWindow.width / 2;
-    demoWindow.y = msize.h / 2 - demoWindow.height / 2;
+    textEditor.title = 'Text Editor';
+    textEditor.width = 800;
+    textEditor.height = 600;
+    textEditor.x = msize.w / 2 - textEditor.width / 2;
+    textEditor.y = msize.h / 2 - textEditor.height / 2;
 }
     

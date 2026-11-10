@@ -117,7 +117,7 @@ var startEntries = [
 					value: 'Bing',
 					icon: 'mimetypes/16/html.png',
 					func: ()=>{
-						initWebView('[Proxied Webapp] Bing', 'mimetypes/16/html.png', 'https://bing.com/', 800, 600, false)
+						initWebView('[Proxied Webapp] Bing', 'mimetypes/16/html.png', 'https://bing.com/', 800, 600)
 					},
 				},
 			],
@@ -149,6 +149,11 @@ var startEntries = [
 					value: 'Transcript',
 					icon: 'mimetypes/16/text-x-generic.png',
 					func: initTranscript,
+				},
+				{
+					value: 'Markdown',
+					icon: 'mimetypes/16/text-x-generic.png',
+					func: initMarkdownDemo,
 				},
 			],
 		},
@@ -290,7 +295,7 @@ var startEntries = [
 			desktop.contextY = e.layerY
 		}
 	),
-	taskBar = new interactable(mainID + '_contentbox', msize.w, 26,
+	taskBar = new interactable(mainID + '_contentbox', msize.w, taskBarHeight,
 		emptyFunction,
 		emptyFunction,
 		()=>{
@@ -323,9 +328,13 @@ var startEntries = [
 hoverGrad.addColorStop(0, '#5DA9F9');
 hoverGrad.addColorStop(1, '#3B90E8');
 
+// the shell is hit-tested above every normal window, the same way it is drawn
+
+taskBar.index = shellIndex;
+
 applications.x = 0;
 applications.y = 0;
-applications.index = 10;
+applications.index = shellIndex + 10;
 
 desktop.index = -1;
 
@@ -345,7 +354,7 @@ contextMenuEntries.forEach((e,i)=>{
 	
 	e.interactable.disabled = true; // reenable when contextmenu is open
 	
-	e.interactable.index = 100;
+	e.interactable.index = shellIndex + 100;
 });
 
 highRenq.push(()=>{
@@ -419,7 +428,7 @@ startEntries.forEach((e,i) => {
 	
 	e.interactable.disabled = true; // reenable when startmenu is open
 	
-	e.interactable.index = 100;
+	e.interactable.index = shellIndex + 100;
 	
 	e.entries.forEach((entry,index)=>{
 		entry.interactable = new interactable('startEntry_entry_' + entry.value.toLowerCase().trim(), 160, 25,
@@ -439,7 +448,7 @@ startEntries.forEach((e,i) => {
 		entry.interactable.x = 160;
 		entry.interactable.y = 26 + i * 25 + index * 25;
 		
-		entry.interactable.index = 100;
+		entry.interactable.index = shellIndex + 100;
 	});
 });
 
@@ -570,14 +579,19 @@ var timeBox = new interactable(mainID + 'timeBox', 75, 24,
 		}
 	),
 	dateStr='',
-	timeStr='';
-		
-setInterval(()=>{
-	timeStr=new Date().toLocaleString(undefined,{localeMatcher:'lookup',hour: 'numeric',minute: 'numeric'});
-	dateStr=new Intl.DateTimeFormat('en-US',{day: '2-digit', month: '2-digit', year: 'numeric'}).format(new Date());
-}, 100);
+	timeStr='',
+	clockSecond=0;
+
+timeBox.index = shellIndex + 10;
 
 highRenq.push(()=>{
+	// the clock text is rebuilt when the second changes, as part of the frame instead of on a timer
+
+	if(Math.floor(Date.now() / 1000) !== clockSecond){
+		clockSecond=Math.floor(Date.now() / 1000);
+		timeStr=new Date().toLocaleString(undefined,{localeMatcher:'lookup',hour: 'numeric',minute: 'numeric'});
+		dateStr=new Intl.DateTimeFormat('en-US',{day: '2-digit', month: '2-digit', year: 'numeric'}).format(new Date());
+	}
 
 	timeBox.width = 145;
 	timeBox.x = msize.w - timeBox.width;

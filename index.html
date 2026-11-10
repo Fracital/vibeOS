@@ -52,7 +52,7 @@ body {
 }
 
 .webview {
-	position: relative;
+	position: absolute;
 	display: block;
 	z-index: 10;
 	border: 0;
@@ -90,16 +90,24 @@ body {
 		<div class='spinner-wrapper'><div class='spinner'></div></div>
 		<script src='scripts/main.js'></script>
 		<script src='scripts/constructors.js'></script>
+		<script src='scripts/selection.js'></script>
+		<script src='scripts/snapshot.js'></script>
 		<script src='scripts/downscale.js'></script>
 		
 		<!-- v86 (https://copy.sh/v86/) emulator core, vendored in scripts/v86/ -->
 		<!-- libcurl.js + wisp relay: fetches disk images from hosts without CORS headers (see scripts/relay.js) -->
 		<script src='scripts/net/libcurl.js'></script>
 		<script src='scripts/relay.js'></script>
+
+		<!-- Stomp web proxy (GPL-3.0) for the browser and proxied webviews, vendored in scripts/stomp/ (see scripts/stomp.js) -->
+		<script src='scripts/stomp/Controller.js'></script>
+		<script src='scripts/stomp.js'></script>
+
 		<script src='scripts/v86/libv86.js'></script>
 		<script src='scripts/v86.js'></script>
 		
 		<script src='scripts/web.js'></script>
+		<script src='scripts/markdown.js'></script>
 		
 		<script src='scripts/jsTerm.js'></script>
 		<script src='scripts/vibeOS-config.js'></script>

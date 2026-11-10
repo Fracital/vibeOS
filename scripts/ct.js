@@ -6,6 +6,11 @@
     This script is backed up as it is updated.
 
     Last updated: August 3, 2020
+
+    Changes made outside of ctaetcsh's own copy (each one is also marked where it happens):
+    2026 11 09 - ct_popupbox is not resizable, because it sizes itself to its message.
+    2026 11 09 - the Licence and Readme viewers show LICENSE.md and README.md through the
+                 markdown viewer (scripts/markdown.js); their line lists remain as the fallback.
 */
 
 // Random
@@ -138,6 +143,9 @@ function ct_popupbox(type,l1,l2,l3) {
     // Size of box
     dnctv_ctpopupbox.width = 400;
     dnctv_ctpopupbox.minHeight = 100;
+    // [Changed 2026 11 09] windows can be resized by their edges now; this one fits itself to its
+    // message on every frame, so it opts out.
+    dnctv_ctpopupbox.resizable = false;
     // setting the location of the box to the center of the enviornment
     dnctv_ctpopupbox.x = msize.w / 2 - dnctv_ctpopupbox.width / 2;
     dnctv_ctpopupbox.y = msize.h / 2 - dnctv_ctpopupbox.height / 2;
@@ -224,46 +232,14 @@ var initLicenceViewer=()=>{
         ' ',
         'THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.'
 
-    ],
-        window=new cwindow('licenceviewer', 600 , 250, (window)=>{
-            // after render
-            
-            var blines = [], // temp
-                clines = [];
-            
-            clines = lines;
-            
-            clines.forEach((e,i)=>{
-                wordWrap(e, window.width / 7.2).split('\n').forEach((ee,ii)=>{
-                    blines.push(ee);
-                });
-            });
-            
-            blines.forEach((e,i)=>{
-                // if(clines.length >= window.height / textSize - 4 + (textSize - lineHeight) )clines.shift();
-                mctx.fillStyle='#000';
-                mctx.font = textSize+'px Open Sans';
-                mctx.fillText(e, window.x + 15 , window.y + 50 + i*lineHeight);
-            });
-            
-            var newHeight = textSize + 12 + blines.length * lineHeight;
-            if(window.minHeight <= newHeight)window.height = newHeight
-            else window.height = window.minHeight
-        }),
-        textSize = 14,
-        lineHeight = 16;
-    
-    window.width = 700;
-    window.minHeight = 400;
-    
-    window.x = msize.w / 2 - window.width / 2; // center of screen
-    window.y = msize.h / 2 - window.height / 2; // middle of screen
-    
-    window.icon = 'mimetypes/24/text-x-generic.png';
-    
-    window.title = 'vibeOS Licence';
-    
-    window.bgColor = 'white'
+    ];
+
+    // [Changed 2026 11 09] This viewer used to draw the lines above itself and grow the window to
+    // fit them. It now opens the markdown viewer (scripts/markdown.js), which scrolls, can be
+    // resized and renders markdown (headings, > quotes, tables, links that open in the browser).
+    // It shows the real LICENSE.md; the lines above are the fallback, one paragraph each, for when
+    // the file cannot be fetched (vibeOS opened as a local file).
+    initMarkdownViewer('vibeOS Licence', {url: 'LICENSE.md', fallback: lines.join('\n\n')}, 'mimetypes/24/text-x-generic.png');
 }
 
 var initReadmeViewer=()=>{
@@ -291,44 +267,12 @@ var initReadmeViewer=()=>{
         'Assistance: Cat Lady, Eli, IStealYourMemes',
         'Beta Testers: Alfias, ShadowFr0st, IStealYourMemes, Nautica, Hat'
 
-    ],
-        window=new cwindow('readmeviewer', 600 , 250, (window)=>{
-            // after render
-            
-            var blines = [], // temp
-                clines = [];
-            
-            clines = lines;
-            
-            clines.forEach((e,i)=>{
-                wordWrap(e, window.width / 7.2).split('\n').forEach((ee,ii)=>{
-                    blines.push(ee);
-                });
-            });
-            
-            blines.forEach((e,i)=>{
-                // if(clines.length >= window.height / textSize - 4 + (textSize - lineHeight) )clines.shift();
-                mctx.fillStyle='#000';
-                mctx.font = textSize+'px Open Sans';
-                mctx.fillText(e, window.x + 15 , window.y + 50 + i*lineHeight);
-            });
-            
-            var newHeight = textSize + 12 + blines.length * lineHeight;
-            if(window.minHeight <= newHeight)window.height = newHeight
-            else window.height = window.minHeight
-        }),
-        textSize = 14,
-        lineHeight = 16;
-    
-    window.width = 700;
-    window.minHeight = 400;
-    
-    window.x = msize.w / 2 - window.width / 2; // center of screen
-    window.y = msize.h / 2 - window.height / 2; // middle of screen
-    
-    window.icon = 'mimetypes/24/text-x-generic.png';
-    
-    window.title = 'vibeOS Readme';
-    
-    window.bgColor = 'white'
+    ];
+
+    // [Changed 2026 11 09] This viewer used to draw the lines above itself and grow the window to
+    // fit them. It now opens the markdown viewer (scripts/markdown.js), which scrolls, can be
+    // resized and renders markdown (headings, > quotes, tables, links that open in the browser).
+    // It shows the real README.md; the lines above are the fallback, one paragraph each, for when
+    // the file cannot be fetched (vibeOS opened as a local file).
+    initMarkdownViewer('vibeOS Readme', {url: 'README.md', fallback: lines.join('\n\n')}, 'mimetypes/24/text-x-generic.png');
 }

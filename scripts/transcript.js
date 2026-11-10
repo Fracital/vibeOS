@@ -28,22 +28,28 @@ var initTranscript=()=>{
 					});
 				});
 				
-				blines.forEach((e,i)=>{
-					// if(clines.length >= window.height / textSize - 4 + (textSize - lineHeight) )clines.shift();
-					mctx.fillStyle='#000';
-					mctx.font = textSize+'px Open Sans';
-					mctx.fillText(e, window.x + 15 , window.y + 50 + i*lineHeight);
+				// the window opens at the height of the text. after that its size belongs to the user
+				// (drag an edge) and whatever does not fit scrolls
+
+				window.scrollView(0, 0, 16 + blines.length * lineHeight, (top)=>{
+					blines.forEach((e,i)=>{
+						mctx.fillStyle='#000';
+						mctx.font = textSize+'px Open Sans';
+						mctx.fillText(e, window.x + 15 , top + 20 + i*lineHeight);
+					});
 				});
 				
-				var newHeight = textSize + 12 + blines.length * lineHeight;
-				if(window.minHeight <= newHeight)window.height = newHeight
-				else window.height = window.minHeight
+				if(fitted)return;
+
+				fitted = true;
+
+				window.height = Math.max(400, textSize + 12 + blines.length * lineHeight);
 			}),
+			fitted = false,
 			textSize = 14,
 			lineHeight = 16;
 		
 		window.width = 700;
-		window.minHeight = 400;
 		
 		window.x = msize.w / 2 - window.width / 2; // center of screen
 		window.y = msize.h / 2 - window.height / 2; // middle of screen

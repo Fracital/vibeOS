@@ -327,28 +327,11 @@ var initSettings = ()=>{
 				msize.w = res[0]
 				msize.h = res[1]
 				
-				var countdownStr = 4,
-					confirmPrompt = {},
-					
-					countdownInterval = ()=>{
-						if(countdownStr > 0){
-							countdownStr-- // reduce countdown by 1 digit
-						}else{ // countdown has timed out
-							if(confirmPrompt.closed == true)return; // user has already selected a choice or somethin 
-							
-							clearInterval(interval);
-							
-							msize.w = pre_msize[0];
-							msize.h = pre_msize[1];
-							
-							confirmPrompt.window.close();
-							confirmPrompt.closed = true;
-							
-						}
-					},
-					interval = setInterval(countdownInterval, 1000);
+				// the prompt counts down against a deadline while it is drawn, the old timer was never
+				// cleared once the user had answered
 
-				
+				var deadline = Date.now() + 5000,
+					confirmPrompt = {};
 				
 				confirmPrompt = new cPrompt('Confirm screen resolution', 'ee',
 					()=>{
@@ -366,7 +349,17 @@ var initSettings = ()=>{
 					(cPrompt)=>{
 						// on render
 						
-						cPrompt.value = `Keep selected resolution? Will revert in ${countdownStr}...`;
+						cPrompt.value = `Keep selected resolution? Will revert in ${Math.max(0, Math.ceil((deadline - Date.now()) / 1000) - 1)}...`;
+
+						if(Date.now() < deadline || cPrompt.closed == true)return;
+
+						// countdown has timed out
+
+						msize.w = pre_msize[0];
+						msize.h = pre_msize[1];
+
+						cPrompt.window.close();
+						cPrompt.closed = true;
 					},
 					above_high_renq // define this since we want it to show above EVERYTHING
 				)
@@ -378,15 +371,31 @@ var initSettings = ()=>{
 		
 		window.width = 500
 		window.height = 418
+		window.resizable = false // the tabs are laid out for this size
 
 		accLoadInput.interactable.width = 250;
 		accLoadInput.interactable.height = 30;
 		accChangeNameInput.interactable.width = 250;
 		accChangeNameInput.interactable.height = 30;
 		accLoadInput.interactable.index = window.contentBox.index + 1;
+		accChangeNameInput.interactable.index = window.contentBox.index + 1;
 
 		
 		
 		window.icon = 'categories/24/package_settings.png'
 		window.title = 'vibeOS Settings'
+
+		// widgets on a tab that was never opened have no index inside the window yet, so the window
+		// cannot find them on its own when it closes
+
+		window.closing = ()=>{
+			[navButtons, screenResButtons, switches, cradios, programLinks, accLoadProf, accChangeName, accExportProf, accClearData, accResetAll].forEach((group,i)=>{
+				Object.values(group).forEach((e,i)=>{
+					e.interactable.delete();
+				});
+			});
+
+			accLoadInput.interactable.delete();
+			accChangeNameInput.interactable.delete();
+		}
 	}

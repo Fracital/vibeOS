@@ -38,157 +38,158 @@ var wallpapers={
 		images : [
 			{
 				value: 'wallpapers/a.png',
-				interactable: null,
 				name: 'Default'
 			},
 			{
 				value: 'wallpapers/b.png',
-				interactable: null,
 				name: 'Wave'
 			},
 			{
 				value: 'wallpapers/c.png',
-				interactable: null,
 				name: 'Test Background'
 			},
 			{
 				value: 'wallpapers/GardenTilesCT.png',
-				interactable: null,
 				name: 'Garden Tiles (CT)'
 			},
 			{
 				value: 'wallpapers/SysYABranded.png',
-				interactable: null,
 				name: 'SysYA_Branded'
 			},
 			{
 				value: 'wallpapers/SysYA.png',
-				interactable: null,
 				name: 'SysYA'
 			},
 			{
 				value: 'wallpapers/SysYADark.png',
-				interactable: null,
 				name: 'SysYA_Dark'
 			},
 		],
 	},
-	initWallpaperPicker = ()=>{
-		wallpapers.images.forEach(async(e,i)=>{
-			e.interactable =  new interactable('desktop_contextBox_' + e.value.toLowerCase().trim() + Date.now(), 1920 / 15, 1080 / 15,
-				emptyFunction,
-				emptyFunction,
-				()=>{
-					// click start
-					
-					background.value = e.value;
-				},
-					
-				()=>{
-					// click end
-					
-				},
-			);
-			
-			e.interactable.index = Object.entries(interactables).length
-			e.image = new Image();
-			e.image.src = 'tango/' + e.value
-			
-			e.imageDownscale = await downscale(e.image, 1920 / 15, 1080 / 15);
-		});
-		
-		wallpapers.solids.forEach(async(e,i)=>{
-			e.interactable =  new interactable('desktop_contextBox_' + e.value.trim() + Date.now(), 1920 / 15, 1080 / 15,
-				emptyFunction,
-				emptyFunction,
-				()=>{
-					// click start
-					
-					background.value = e.value;
-				},
-					
-				()=>{
-					// click end
-					
-				},
-			);
-			
-			e.interactable.index = Object.entries(interactables).length
-		});
-		
-		var window = new cwindow('wallpaper-picker' + Date.now(), 50, 50, (ele)=>{
-				// on render
-				
-				mctx.font = '13px Open Sans';
-				mctx.fillStyle = '#000'
-				
-				mctx.fillText('Wallpapers', ele.x + 20, ele.y + 55) // wallpapers label
-				mctx.fillText('Solid Colors', ele.x + 20, ele.y + 160) // solid colors label
-				
-				var loop_thing_img = (e,i,a)=>{
-						e.interactable.index = ele.contentBox.index + 1
-						
-						e.interactable.x = ele.x + 20 + i * (1920 / 15 + 20) // wallpaper previews on x axis
-						
-						e.interactable.width = 1920 / 15
-						e.interactable.height = 1080 / 15
-						
-						e.interactable.y = ele.y + 65 // wallpaper previews on y axis
-						
-						mctx.drawImageURL('tango/' + e.value, e.interactable.x, e.interactable.y, e.interactable.width, e.interactable.height)
-						
-						mctx.lineJoin = 'miter';
-						mctx.lineWidth = '2';
-						
-						if(e.interactable.hover){
-							mctx.strokeStyle = '#fff'
-							mctx.strokeRect(e.interactable.x - 2, e.interactable.y - 2, e.interactable.width + 4, e.interactable.height + 4)
-						}
-						
-						if(e.value == background.value){
-							mctx.strokeStyle = '#000'
-							mctx.strokeRect(e.interactable.x - 2, e.interactable.y - 2, e.interactable.width + 4, e.interactable.height + 4)
-						}
-					},
-					loop_thing_solids = (e,i,a)=>{
-						e.interactable.index = ele.contentBox.index + 1
-						
-						e.interactable.x = ele.x + 20 + i * 46 // s.colors previews on x axis
-						
-						e.interactable.width = 44
-						e.interactable.height = 44
-						
-						e.interactable.y = ele.y + 70 + (100) // s.colors previews on y axis
+	wallpaperThumbs = {},
+	loadWallpaperThumb = async (value)=>{
+		// a small copy is made once per session. the picker used to scale every full size
+		// wallpaper down again on every frame, which is what made it crawl
+		var full = new Image(),
+			thumb = new Image();
 
-						mctx.fillStyle = e.value
-						mctx.fillRect(e.interactable.x, e.interactable.y, e.interactable.width, e.interactable.height)
-						
+		wallpaperThumbs[value] = thumb;
+
+		full.src = 'tango/' + value;
+
+		try{
+			thumb.src = await downscale(full, 128, 72, {imageType: 'png'});
+		}catch(err){
+			console.error(err);
+		}
+	},
+	initWallpaperPicker = ()=>{
+		var tileWidth = 128,
+			tileHeight = 72,
+			swatch = 44,
+			pad = 20,
+			window = new cwindow('wallpaper-picker', 50, 50, (ele)=>{
+				// on render: both groups wrap to the window width, and scroll when it is too small for them
+
+				var usable = ele.width - pad * 2 - ele.scrollBar.width,
+					perRow = Math.max(1, Math.floor((usable + 20) / (tileWidth + 20))),
+					swatchPerRow = Math.max(1, Math.floor((usable + 2) / (swatch + 2))),
+					imagesTop = 30,
+					solidsTop = imagesTop + Math.ceil(wallpapers.images.length / perRow) * (tileHeight + 34) + 22,
+					contentHeight = solidsTop + Math.ceil(wallpapers.solids.length / swatchPerRow) * (swatch + 2) + pad;
+
+				ele.scrollView(0, 0, contentHeight, (top)=>{
+					mctx.font = '13px Open Sans';
+					mctx.fillStyle = '#000';
+
+					mctx.fillText('Wallpapers', ele.x + pad, top + 20); // wallpapers label
+					mctx.fillText('Solid Colors', ele.x + pad, top + solidsTop - 10); // solid colors label
+
+					tiles.forEach((tile,i)=>{
+						var box = tile.interactable,
+							n = tile.solid ? i - wallpapers.images.length : i,
+							thumb = wallpaperThumbs[tile.entry.value];
+
+						box.index = ele.contentBox.index + 1;
+
+						if(tile.solid){
+							box.width = swatch;
+							box.height = swatch;
+							box.x = ele.x + pad + (n % swatchPerRow) * (swatch + 2);
+							box.y = top + solidsTop + Math.floor(n / swatchPerRow) * (swatch + 2);
+
+							mctx.fillStyle = tile.entry.value;
+							mctx.fillRect(box.x, box.y, box.width, box.height);
+						}else{
+							box.width = tileWidth;
+							box.height = tileHeight;
+							box.x = ele.x + pad + (n % perRow) * (tileWidth + 20);
+							box.y = top + imagesTop + Math.floor(n / perRow) * (tileHeight + 34);
+
+							if(thumb == null)loadWallpaperThumb(tile.entry.value);
+
+							if(thumb != null && thumb.complete && thumb.naturalWidth > 0){
+								mctx.drawImage(thumb, box.x, box.y, box.width, box.height);
+							}else{
+								// still loading
+								mctx.fillStyle = '#9a9a9a';
+								mctx.fillRect(box.x, box.y, box.width, box.height);
+							}
+
+							mctx.fillStyle = '#000';
+							mctx.textAlign = 'center';
+							mctx.fillText(tile.entry.name, box.x + box.width / 2, box.y + box.height + 17);
+							mctx.textAlign = 'start';
+						}
+
 						mctx.lineJoin = 'miter';
-						mctx.lineWidth = '2';
-						
-						if(e.interactable.hover){
-							mctx.strokeStyle = '#fff'
-							mctx.strokeRect(e.interactable.x - 2, e.interactable.y - 2, e.interactable.width + 4, e.interactable.height + 4)
+						mctx.lineWidth = 2;
+
+						if(box.hover){
+							mctx.strokeStyle = '#fff';
+							mctx.strokeRect(box.x - 2, box.y - 2, box.width + 4, box.height + 4);
 						}
-						
-						if(e.value == background.value){
-							mctx.strokeStyle = '#000'
-							mctx.strokeRect(e.interactable.x - 2, e.interactable.y - 2, e.interactable.width + 4, e.interactable.height + 4)
+
+						if(tile.entry.value == background.value){
+							mctx.strokeStyle = '#000';
+							mctx.strokeRect(box.x - 2, box.y - 2, box.width + 4, box.height + 4);
 						}
-					}
-				
-				wallpapers.images.forEach(loop_thing_img);
-				wallpapers.solids.forEach(loop_thing_solids);
-			}); 
-		
+					});
+				});
+			}),
+			// every picker window gets its own tiles. they used to be stored on the shared wallpaper
+			// list, so a second picker took them from the first and closing either one broke the other
+			tiles = wallpapers.images.concat(wallpapers.solids).map((entry,i)=>{
+				var tile = {
+						entry: entry,
+						solid: i >= wallpapers.images.length,
+						interactable: new interactable('wallpaper-picker_tile_' + entry.value.toLowerCase().trim(), tileWidth, tileHeight,
+							emptyFunction,
+							emptyFunction,
+							()=>{
+								// click start
+
+								background.value = entry.value;
+							}
+						),
+					};
+
+				// only reacts inside the scroll view, not while scrolled out under the title bar
+				tile.interactable.scrolls = true;
+
+				return tile;
+			});
+
 		window.closing = ()=>{
-			wallpapers.images.forEach((e,i)=>{
-				e.interactable.delete();
+			tiles.forEach((tile,i)=>{
+				tile.interactable.delete();
 			});
 		}
-		
+
 		window.title = 'Wallpaper Picker'
 		window.icon = 'apps/24/preferences-desktop-wallpaper.png'
-		window.width = 1060
-		window.height = 220
+		window.width = 1070
+		window.height = 240
+		window.minWidth = 240
+		window.minHeight = 150
 	}
