@@ -288,11 +288,16 @@ var startEntries = [
 			
 			startOpen = false
 			
-			if(e.which == 3)desktop.contextOpen = !desktop.contextOpen
-			else desktop.contextOpen = false
-			
-			desktop.contextX = e.layerX
-			desktop.contextY = e.layerY
+			// a right click opens the menu where the pointer is, any other click on the desktop closes it
+
+			desktop.contextOpen = e.which == 3
+
+			// kept in the same coordinates as cursor.grab, which the menu is compared against below.
+			// e.layerX is a whole number and the pointer position is not always one, so comparing the
+			// two closed the menu on the very frame it opened
+
+			desktop.contextX = cursor.x
+			desktop.contextY = cursor.y
 		}
 	),
 	taskBar = new interactable(mainID + '_contentbox', msize.w, taskBarHeight,
@@ -367,13 +372,18 @@ highRenq.push(()=>{
 		// mctx.fillStyle = '#FCFCFC';
 		// mctx.fillRect(desktop.contextX, desktop.contextY, 160, 25 * 5);
 		
-		if(cursor.down && desktop.contextX != cursor.x && desktop.contextY != cursor.y && contextMenuEntries.some((e,i)=> !e.interactable.hover ) )desktop.contextOpen = false;
+		// a press somewhere else closes the menu. the press that opened it happened exactly where the
+		// menu is, and stays down for a few frames, so it is told apart by its position
+
+		if(cursor.down && (cursor.grab.x !== desktop.contextX || cursor.grab.y !== desktop.contextY) && !contextMenuEntries.some((e,i)=> e.interactable.hover))desktop.contextOpen = false;
 		
 		contextMenuEntries.forEach((e,i)=>{
 			e.interactable.disabled = false;
 			
-			e.interactable.x = desktop.contextX;
-			e.interactable.y = desktop.contextY + i * 25;
+			// near the right or bottom edge the menu opens inwards instead of off the screen
+
+			e.interactable.x = Math.min(desktop.contextX, msize.w - e.interactable.width - 1);
+			e.interactable.y = Math.min(desktop.contextY, msize.h - contextMenuEntries.length * 25 - 1) + i * 25;
 
 			// border
 			

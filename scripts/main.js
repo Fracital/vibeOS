@@ -279,6 +279,8 @@ class cwindow {
 
 		this.onWheel = null;
 
+		this.beforeClose = null;
+
 		// a new window goes on top of its layer, so the next free band is already the right one
 
 		this.band = layerOf(this) * 2 * shellIndex + (cwindows.filter((w)=> layerOf(w) === layerOf(this)).length + 1) * bandSize;
@@ -334,6 +336,11 @@ class cwindow {
 
 		}, ()=>{ // click end
 			if(this.closeButton.pressed && this.closeButton.hover){
+				// an app with something to lose can hold the close button back: beforeClose() returning
+				// false keeps the window open (it then closes the window itself once that is settled)
+
+				if(this.beforeClose != null && this.beforeClose() === false)return;
+
 				this.close();
 			}
 		});

@@ -66,6 +66,10 @@ STYLE.md before changing anything. When a rule here conflicts with a tool defaul
   the canvas becomes selectable through the `selection` helper in `scripts/selection.js`.
 - Rich text is written as markdown and drawn by the `markdown` widget in `scripts/markdown.js`
   (`initMarkdownViewer` is the ready made window). Web links open in vibeBrowser.
+- Multi-line text input is the `editor` widget in `scripts/editor.js` (caret, selection, undo,
+  clipboard, a plain mode and a rich mode that formats markdown in place). The Text Editor in
+  `scripts/textEditor.js` is the app around it, and shows how a window asks before closing with
+  unsaved work (`window.beforeClose`).
 
 ## Vendored code
 
