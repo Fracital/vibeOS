@@ -1,0 +1,20 @@
+hyper-util-wasm 07117dd90174688341c27df2fdeb023c71015e4a
+epoxy-tls 9cde724aea1a0f5e46b1c962b3d19ca1389af074
+epoxy-transport 170cb1c87f916919d4c5f283b73f91afcda068aa
+hyper 621d8e4d7788bfd2d62d15d40a73efae7f9a0bf0
+./epoxy-tls/0001-client-allow-256-KiB-HTTP-2-response-header-blocks-C.patch
+./epoxy-tls/0002-build-take-hyper-util-wasm-from-the-patched-sibling-.patch
+./epoxy-tls/0003-wisp-finish-closing-a-stream-instead-of-leaving-the-.patch
+./epoxy-tls/0004-build-take-hyper-from-the-patched-sibling-checkout.patch
+./epoxy-tls/0005-client-read-malformed-HTTP-1-response-header-lines-a.patch
+./epoxy-tls/0006-client-pass-response-header-values-through-as-byte-s.patch
+./epoxy-tls/0007-websocket-send-the-handshake-with-an-origin-form-req.patch
+./epoxy-tls/0008-websocket-name-a-non-default-port-in-the-handshake-s.patch
+./epoxy-tls/0009-websocket-send-the-handshake-s-header-fields-as-Chro.patch
+./epoxy-tls/0010-wss-offer-http-1.1-in-ALPN-as-a-browser-s-WebSocket-.patch
+./epoxy-tls/0011-websocket-hand-onopen-the-subprotocol-the-server-cho.patch
+./epoxy-transport/0001-Build-against-the-sibling-epoxy-tls-checkout-epoxy-t.patch
+./epoxy-transport/0002-init-load-the-wasm-module-and-build-the-client-once-.patch
+./epoxy-transport/0003-connect-report-the-subprotocol-the-server-chose.patch
+./hyper-util-wasm/0001-client-expose-http2_max_header_list_size-on-the-lega.patch
+./hyper/0001-client-read-a-lone-CR-in-a-response-head-as-Chrome-d.patch

@@ -2,5 +2,6 @@
 appfiles/
 scripts/v86/
 scripts/net/
+scripts/stomp/
 tango/
 preview/
