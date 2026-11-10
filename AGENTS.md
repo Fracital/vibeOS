@@ -76,8 +76,9 @@ STYLE.md before changing anything. When a rule here conflicts with a tool defaul
 - `scripts/v86/` holds the v86 emulator build, BIOS files and small disk images from
   https://copy.sh/v86/ (BSD 2-Clause). `scripts/net/` holds libcurl.js (LGPL v3). Do not edit
   these files. Update them by replacing them with a newer upstream build and say which version.
-- `scripts/stomp/` holds the Stomp web proxy (GPL-3.0), copied from the `dist` branch of
-  https://github.com/Fracital/powerMouse (`SOURCE` names the commit it was built from), and
+- `scripts/stomp/` holds the Stomp web proxy (GPL-3.0), copied from the `dist/` folder of the
+  npm package `@sysce/stomp` (built from https://github.com/Fracital/powerMouse; `SOURCE`
+  names the package version and the commit it was built from), and
   `scripts/stomp/epoxy/` the patched epoxy transport it uses (AGPL-3.0, `UPSTREAM` lists the
   revisions and patches). Same rule: replace, never edit. `scripts/stomp.js` is the wrapper;
   the browser (`scripts/web.js`) and proxied webviews load pages through it, tunnelled over the

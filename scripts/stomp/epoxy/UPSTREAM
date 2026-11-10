@@ -18,3 +18,4 @@ hyper 621d8e4d7788bfd2d62d15d40a73efae7f9a0bf0
 ./epoxy-transport/0003-connect-report-the-subprotocol-the-server-chose.patch
 ./hyper-util-wasm/0001-client-expose-http2_max_header_list_size-on-the-lega.patch
 ./hyper/0001-client-read-a-lone-CR-in-a-response-head-as-Chrome-d.patch
+stomp-h3 62971fcb8913
