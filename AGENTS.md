@@ -30,9 +30,12 @@ STYLE.md before changing anything. When a rule here conflicts with a tool defaul
   scripts in order, and every file shares the global scope. New scripts are added as a
   `<script>` tag in `index.html`, after the files they depend on and before `appMan.js` and
   `wallpaper.js`, which must stay last.
-- Everything visible is painted on one 2D canvas (`mctx`) at 1280x720 by a render loop in
-  `scripts/main.js`. Mouse events arrive on the `#overlay` div and are resolved to
-  `interactable` objects by position and index. There is no DOM UI apart from webview iframes.
+- Everything visible is painted on one 2D canvas (`mctx`) by a render loop in `scripts/main.js`.
+  The canvas fills the browser window at whatever size it is: `msize.w` and `msize.h` hold the
+  current desktop size and change when the browser window is resized (`fitScreen`), so read them
+  every frame and never assume a resolution. Mouse events arrive on the `#overlay` div and are
+  resolved to `interactable` objects by position and index. There is no DOM UI apart from
+  webview iframes.
 - A desktop app is a function named `init<Thing>` that creates a `cwindow` and draws its
   contents in the window's render callback. Apps are registered in `startEntries` in
   `scripts/appMan.js`. Shared widgets (`cwindow`, `interactable`, `inputbar`, `button`,
@@ -45,8 +48,9 @@ STYLE.md before changing anything. When a rule here conflicts with a tool defaul
   a picture of its DOM (`scripts/snapshot.js`, an SVG `<foreignObject>` rendered by the browser
   itself). That needs the page to be same origin, which pages behind the web proxy are.
 - Windows must fit the desktop: the taskbar is 26px, a title bar is 30px, so content is at most
-  about 654px tall. `cwindow` shrinks anything larger to the desktop and keeps the title bar on
-  screen, but a shrunk window cuts its content off, so size windows to fit or scroll them.
+  about `msize.h - 66` pixels tall (654px on a 720px high window). `cwindow` shrinks anything
+  larger to the desktop and keeps the title bar on screen, but a shrunk window cuts its content
+  off, so size windows to fit or scroll them.
 - Each `cwindow` owns a band of 1000 interactable indices starting at `contentBox.index`. Give a
   widget inside a window the index `contentBox.index + n` and the window manager does the rest:
   the widget follows the window when it is raised, only reacts inside the window frame, and is

@@ -6,17 +6,8 @@ var initSettings = ()=>{
 				sysinfo: new button('Env. Info', 100, 50),
 				about: new button('About', 100, 50),
 			},
-			screenResButtons = {
-				'1280x720': new button('720p', 100, 50),
-				'1920x1080': new button('1080p', 100, 50),
-			},
 			switches = {
 				'pee': new cswitch(50, 25, false),
-			},
-			cradios = {
-				'1280x720': new cradio('1280x720', 25, false),
-				'1366x768': new cradio('1366x768', 25, false),
-				'1920x1080': new cradio('1920x1080', 25, false),
 			},
 			programLinks = {
 				'wallpaperpicker': new button('Wallpaper Picker', 125, 25),
@@ -67,31 +58,18 @@ var initSettings = ()=>{
 						mctx.textAlign = 'start';
 						mctx.font = '16px Open Sans';
 						mctx.fillText(`Your Screen Resolution: ${screen.width}x${screen.height}`, remainingX + 16, ele.y + 60)
-						mctx.fillText(`Current Environment Resolution: ${msize.w}x${msize.h}`, remainingX + 16, ele.y + 80);
-						
-						// todo: dropdown menu and radio buttons
-						
-						Object.entries(cradios).forEach((e,i)=>{ // Screen Res Selection
-							if(e[1] == null)return;
-							
-							e[1].this().interactable.x = remainingX + 20
-							
-							e[1].this().interactable.y = ele.y + 100 + i * 30
-					
-							e[1].this().interactable.index = ele.contentBox.index + 3 + i;
-							
-							e[1].this().render();
-						});
+						mctx.fillText(`Desktop Resolution: ${msize.w}x${msize.h}`, remainingX + 16, ele.y + 80);
+						mctx.fillText('It follows the size of the browser window.', remainingX + 16, ele.y + 100);
 
-						mctx.fillRect(remainingX + 15, ele.y + 200, remainingWidth - 25, 2); // seperator
-						mctx.fillText(`Looking for something?`, ele.x + 150 , ele.y + 230);		
+						mctx.fillRect(remainingX + 15, ele.y + 120, remainingWidth - 25, 2); // seperator
+						mctx.fillText(`Looking for something?`, ele.x + 150 , ele.y + 150);
 
 						Object.entries(programLinks).forEach((e,i)=>{ // program link buttons (wallpaper)
 							if(e[1] == null)return;
 							
 							e[1].this().interactable.x = remainingX + 16
 							
-							e[1].this().interactable.y = ele.y + 250 + i * 30
+							e[1].this().interactable.y = ele.y + 170 + i * 30
 					
 							e[1].this().interactable.index = ele.contentBox.index + 3 + i;
 							
@@ -305,70 +283,6 @@ var initSettings = ()=>{
 			}
 		});
 		
-		Object.entries(cradios).forEach((e,i)=>{
-			if(e[1] == null)return;
-			
-			var prevFunc = e[1].this().interactable.clickend; // have this somewhere since we overwrite it
-			
-			e[1].this().interactable.clickend = ()=>{
-				// prevFunc();
-				
-				Object.entries(cradios).forEach((ee,ii)=>{
-					ee[1].this().value = false;
-				});
-				
-				e[1].this().value = true
-				
-				// if(e[1].this().value != true)return;
-				
-				var res = e[0].split('x'), // [1920, 1080]
-					pre_msize = [msize.w, msize.h] // store previoous value
-				
-				msize.w = res[0]
-				msize.h = res[1]
-				
-				// the prompt counts down against a deadline while it is drawn, the old timer was never
-				// cleared once the user had answered
-
-				var deadline = Date.now() + 5000,
-					confirmPrompt = {};
-				
-				confirmPrompt = new cPrompt('Confirm screen resolution', 'ee',
-					()=>{
-						// on true
-						
-						msize.w = res[0];
-						msize.h = res[1];
-					},
-					()=>{
-						// on false
-						
-						msize.w = pre_msize[0];
-						msize.h = pre_msize[1];
-					},
-					(cPrompt)=>{
-						// on render
-						
-						cPrompt.value = `Keep selected resolution? Will revert in ${Math.max(0, Math.ceil((deadline - Date.now()) / 1000) - 1)}...`;
-
-						if(Date.now() < deadline || cPrompt.closed == true)return;
-
-						// countdown has timed out
-
-						msize.w = pre_msize[0];
-						msize.h = pre_msize[1];
-
-						cPrompt.window.close();
-						cPrompt.closed = true;
-					},
-					above_high_renq // define this since we want it to show above EVERYTHING
-				)
-
-			}
-		});
-		
-		
-		
 		window.width = 500
 		window.height = 418
 		window.resizable = false // the tabs are laid out for this size
@@ -389,7 +303,7 @@ var initSettings = ()=>{
 		// cannot find them on its own when it closes
 
 		window.closing = ()=>{
-			[navButtons, screenResButtons, switches, cradios, programLinks, accLoadProf, accChangeName, accExportProf, accClearData, accResetAll].forEach((group,i)=>{
+			[navButtons, switches, programLinks, accLoadProf, accChangeName, accExportProf, accClearData, accResetAll].forEach((group,i)=>{
 				Object.values(group).forEach((e,i)=>{
 					e.interactable.delete();
 				});

@@ -14,9 +14,10 @@ body {
 	overflow: hidden;
 }
 
+/* the desktop fills the browser window, scripts/main.js sizes it in pixels (fitScreen) */
 #mCanvas, #webViews, #overlay {
-	width: 1280px;
-	height: 720px;
+	width: 100%;
+	height: 100%;
 	display: block;
 	position: absolute;
 	background: transparent;
@@ -84,7 +85,7 @@ body {
 		</style>
 	</head>
 	<body>
-		<canvas tabindex='0' width='1280' height='720' id='mCanvas' contenteditable='true'></canvas>
+		<canvas tabindex='0' id='mCanvas' contenteditable='true'></canvas>
 		<div id='overlay'></div>
 		<!--<div id='webViews'></div>-->
 		

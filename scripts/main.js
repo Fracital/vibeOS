@@ -1,7 +1,8 @@
 var mCanvas = document.getElementById('mCanvas'),
 	overlay = document.getElementById('overlay'),
 	mctx = mCanvas.getContext('2d'),
-	msize = {w: mCanvas.width, h: mCanvas.height},
+	// the desktop is the size of the browser window, see fitScreen()
+	msize = {w: window.innerWidth, h: window.innerHeight},
 	mfocus = false,
 	renq = [],
 	highRenq = [],
@@ -896,51 +897,21 @@ var renderFrame = ()=>{
 
 	cursor.img = 'pointer';
 
-	if(mCanvas.getAttribute('width') != msize.w){
-		mCanvas.setAttribute('width', msize.w);
-		mCanvas.style.width = msize.w + 'px';
-		mCanvas.style.height = msize.h + 'px';
-
-		overlay.setAttribute('width', msize.w);
-		overlay.style.width = msize.w + 'px';
-		overlay.style.height = msize.h + 'px';
-	}
-
-	if(mCanvas.getAttribute('height') != msize.h){
-		mCanvas.setAttribute('height', msize.h);
-	}
-	
 	try{
 		wallpaperBusiness();
 	}catch(err){
 		mctx.drawImageURL('tango/wallpapers/a.png', 0, 0, msize.w, msize.h);
 	}
 	
-	if(window.innerWidth < msize.w || window.innerHeight < msize.h){ // window is smaller than the current resolution
-		mctx.fillStyle = '#fff';
-		mctx.fillRect(0, 0, msize.w, msize.h);
+	// the queues are copied so a window may close or raise itself from inside its render callback
 
-		// center text
+	renq.slice().forEach((e,i)=>{
+		e(); // run all render operations in order
+	});
 
-		mctx.textAlign = 'center';
-
-		mctx.fillStyle = '#000';
-		mctx.font = '14px Open Sans';
-
-		mctx.fillText(`Your browser window is smaller than the minimum size of ${msize.w}x${msize.h}! (the window is ${window.innerWidth}x${window.innerHeight})`, window.innerWidth / 2, window.innerHeight / 2 - 14);
-
-		mctx.textAlign = 'start';
-	}else{
-		// the queues are copied so a window may close or raise itself from inside its render callback
-
-		renq.slice().forEach((e,i)=>{
-			e(); // run all render operations in order
-		});
-
-		highRenq.slice().forEach((e,i)=>{ // desktop and stuff
-			e();
-		});
-	}
+	highRenq.slice().forEach((e,i)=>{ // desktop and stuff
+		e();
+	});
 
 	above_high_renq.slice().forEach((e,i)=>{ // super high stuff like above display level
 		e();
@@ -956,5 +927,25 @@ var renderFrame = ()=>{
 	}
 
 };
+
+// the desktop fills the browser window at any size. windows keep themselves on it every frame
+// (cwindow.fitDesktop), and resizing the canvas clears it, which the next frame paints over anyway
+
+var fitScreen = ()=>{
+	msize.w = window.innerWidth;
+	msize.h = window.innerHeight;
+
+	[mCanvas, overlay].forEach((e,i)=>{
+		e.style.width = msize.w + 'px';
+		e.style.height = msize.h + 'px';
+	});
+
+	mCanvas.width = msize.w;
+	mCanvas.height = msize.h;
+};
+
+window.addEventListener('resize', fitScreen);
+
+fitScreen();
 
 requestAnimationFrame(renderFrame);

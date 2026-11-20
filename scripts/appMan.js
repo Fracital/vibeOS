@@ -14,11 +14,6 @@ var startEntries = [
 					icon: 'apps/24/preferences-desktop-wallpaper.png',
 					func: initWallpaperPicker,
 				},
-				{
-					value: 'Auto Resolution',
-					icon: 'devices/16/monitor.png',
-					func: ctAutoRes,
-				},
 			],
 		},
 		{
@@ -47,7 +42,8 @@ var startEntries = [
 					value: 'Nsvg',
 					icon: 'mimetypes/16/svg.png',
 					func: ()=>{
-						initWebView('Nsvg for vibeOS', 'mimetypes/16/svg.png', 'appfiles/nsvg/ctloader.html', 1000, 800, false)
+						// the hosted upstream (https://github.com/cojmar/nsvg), through the web proxy
+						initWebView('Nsvg', 'mimetypes/16/svg.png', 'https://cojmar.github.io/nsvg/', 1000, 800);
 					},
 				}
 			],
