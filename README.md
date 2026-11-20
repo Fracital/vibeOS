@@ -49,7 +49,7 @@ Additionally, you can email `contact@ctaetcsh.xyz`. Communications are managed b
 
 | GitHub     	| Name                  	| Title                         	|
 |------------	|-----------------------	|-------------------------------	|
-| @e9x			| The Mysterious Divide 	| Creator & Lead Developer      	|
+| <img src="preview/am%20i%20cool%20yet.png" width="64" alt="e9x's avatar"> @e9x	| David Reed (The Mysterious Divide) 	| Creator & Lead Developer      	|
 | @ctaetcsh		| Nathan M. (ctaetcsh)  	| Developer, Designer & Manager 	|
 | @deopdeop		| Ryan W. (LinuxTerm)   	| Developer                     	|
 
