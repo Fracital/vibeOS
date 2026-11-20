@@ -47,11 +47,11 @@ Additionally, you can email `contact@ctaetcsh.xyz`. Communications are managed b
 
 ## Credits
 
-| GitHub     	| Name                  	| Title                         	|
-|------------	|-----------------------	|-------------------------------	|
-| <img src="preview/am%20i%20cool%20yet.png" width="64" alt="e9x's avatar"> @e9x	| David Reed (The Mysterious Divide) 	| Creator & Lead Developer      	|
-| @ctaetcsh		| Nathan M. (ctaetcsh)  	| Developer, Designer & Manager 	|
-| @deopdeop		| Ryan W. (LinuxTerm)   	| Developer                     	|
+| | GitHub | Name | Title |
+| --- | --- | --- | --- |
+| <img src="preview/am%20i%20cool%20yet.png" width="64" alt="e9x's avatar"> | [@e9x](https://github.com/e9x) | David Reed (The Mysterious Divide) | Creator & Lead Developer |
+| | [@ctaetcsh](https://github.com/ctaetcsh) | Nathan M. (ctaetcsh) | Developer, Designer & Manager |
+| | [@deopdeop](https://github.com/deopdeop) | Ryan W. (LinuxTerm) | Developer |
 
 Additionally, thank you to our Beta Testers:
 ```
