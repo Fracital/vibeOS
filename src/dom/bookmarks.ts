@@ -3,6 +3,8 @@
 // The icons are locally vendored in public/stomp-bookmarks/icons/ with hashes.
 // Existing vibeBrowser bookmarks are imported before seeding these defaults.
 
+import { assetUrl } from './types';
+
 export interface BrowserBookmark {
 	url: string;
 	title: string;
@@ -14,8 +16,8 @@ export interface BrowserBookmark {
 const storageKey = 'vibeos.browser.bookmarks.v2';
 const legacyKey = 'vibeos.browser.bookmarks.v1';
 const upstreamKey = 'stomp-demo:bookmarks';
-const icon = (name: string): string => `/stomp-bookmarks/icons/${name}`;
-const fallbackIcon = '/tango/apps/16/internet-web-browser.png';
+const icon = (name: string): string => assetUrl(`/stomp-bookmarks/icons/${name}`);
+const fallbackIcon = assetUrl('/tango/apps/16/internet-web-browser.png');
 
 export const defaultStompBookmarks: readonly BrowserBookmark[] = [
 	{title: 'Fracital', url: 'https://fracit.al/', icon: icon('fracital.svg'), color: '#fb74fe'},
@@ -51,7 +53,7 @@ const safeUrl = (value: unknown): string | null => {
 
 const safeIcon = (value: unknown): string => {
 	if(typeof value !== 'string' || value.length > 140_000)return fallbackIcon;
-	if(/^\/pm\/icons\/[\w.-]+\.(?:png|svg)$/.test(value))return value.replace('/pm/icons/', '/stomp-bookmarks/icons/');
+	if(/^\/pm\/icons\/[\w.-]+\.(?:png|svg)$/.test(value))return assetUrl(value.replace('/pm/icons/', '/stomp-bookmarks/icons/'));
 	if(/^\/stomp-bookmarks\/icons\/[\w.-]+\.(?:png|svg)$/.test(value))return value;
 	if(/^\/tango\/[\w/.-]+\.(?:png|cur)$/.test(value))return value;
 	if(/^data:image\/(?:png|jpeg|gif|webp);base64,[a-z\d+/=]+$/i.test(value))return value;

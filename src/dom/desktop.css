@@ -1,42 +1,31 @@
 @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Inconsolata&family=Roboto+Mono&display=swap');
 
-:root {
-	font-family: 'Open Sans', Arial, sans-serif;
-	color-scheme: light;
-}
-
-*, *::before, *::after {
+/* page-level rules are in page.css, which only vibeOS's own page loads: a host page that
+   embeds the desktop keeps its own, so every rule here stays inside the desktop's root */
+:where(#vibeos-root) *, :where(#vibeos-root) *::before, :where(#vibeos-root) *::after {
 	box-sizing: border-box;
 }
 
-html, body {
-	width: 100%;
-	height: 100%;
-	margin: 0;
-	padding: 0;
-	overflow: hidden;
-	background: #000;
-}
-
-button, input, textarea, select {
+:where(#vibeos-root) :is(button, input, textarea, select) {
 	font: inherit;
 }
 
-button {
+:where(#vibeos-root) button {
 	cursor: pointer;
 }
 
-button, button *, [role='button'], [role='tab'], [role='tab'] * {
+:where(#vibeos-root) :is(button, button *, [role='button'], [role='tab'], [role='tab'] *) {
 	user-select: none;
 	-webkit-user-select: none;
 }
 
-button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
+:where(#vibeos-root) :is(button, a, input, textarea, select):focus-visible {
 	outline: 2px solid #287cd5;
 	outline-offset: -2px;
 }
 
 #vibeos-root {
+	color-scheme: light;
 	position: fixed;
 	inset: 0;
 	font-family: 'Open Sans', Arial, sans-serif;
@@ -136,6 +125,11 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
 	gap: 4px;
 	padding: 0 3px;
 	text-align: left;
+}
+
+.vo-leave {
+	width: auto;
+	padding: 0 8px;
 }
 
 .vo-applications img {

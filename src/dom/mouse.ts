@@ -1,4 +1,5 @@
 import type { DesktopAPI } from './types';
+import { assetUrl } from './types';
 import './mouse.css';
 
 export type MouseTheme = 'kittydog' | 'tango' | 'system';
@@ -10,9 +11,9 @@ export interface MouseSettings {
 
 const storageKey = 'vibeos.mouse.settings';
 const themes: Array<{id: MouseTheme; name: string; note: string; preview: string}> = [
-	{id: 'kittydog', name: 'Kittydog Crystal', note: 'Colorful crystal pointer', preview: '/cursors/kittydog/left_ptr.png'},
-	{id: 'tango', name: 'Tango Classic', note: 'Original vibeOS cursors', preview: '/cursors/tango/pointer.png'},
-	{id: 'system', name: 'System Default', note: 'Use your browser pointer', preview: '/tango/devices/32/input-mouse.png'},
+	{id: 'kittydog', name: 'Kittydog Crystal', note: 'Colorful crystal pointer', preview: assetUrl('/cursors/kittydog/left_ptr.png')},
+	{id: 'tango', name: 'Tango Classic', note: 'Original vibeOS cursors', preview: assetUrl('/cursors/tango/pointer.png')},
+	{id: 'system', name: 'System Default', note: 'Use your browser pointer', preview: assetUrl('/tango/devices/32/input-mouse.png')},
 ];
 
 export const readMouseSettings = (): MouseSettings => {

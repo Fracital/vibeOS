@@ -1,11 +1,11 @@
 import { createApplications, openAppManager } from './apps';
-import { launchBrowser, mountProxiedWebview } from './browser';
+import { launchBrowser, mountProxiedWebview, setBrowserHost } from './browser';
 import { launchEmulator } from './emulator';
 import { openMouseSettings, applyMouseSettings, readMouseSettings } from './mouse';
 import { cachedSiteInfo, inspectSite, installSite } from './catalog';
 import { bootWelcome, openWelcome } from './welcome';
-import type { AppEntry, DesktopAPI, DesktopWindow, WindowSpec } from './types';
-import { iconUrl } from './types';
+import type { AppEntry, BrowserHost, DesktopAPI, DesktopWindow, WindowSpec } from './types';
+import { assetUrl, iconUrl } from './types';
 import './desktop.css';
 import './apps.css';
 import './browser.css';
@@ -35,11 +35,13 @@ const positionInsideDesktop = (element: HTMLElement, width: number, height: numb
 	element.style.top = `${safeHeight >= desktopHeight - taskbarHeight ? taskbarHeight : Math.min(Math.max(y, taskbarHeight), Math.max(taskbarHeight, desktopHeight - (fitInside ? safeHeight : titlebarHeight)))}px`;
 };
 
-export function bootDesktop(): void {
+// host: the page that embeds the desktop (src/dom/embed.ts), whose tabs the browser shows
+export function bootDesktop(host?: BrowserHost): DesktopAPI | null {
 	const root = document.getElementById('vibeos-root');
 	if(!root)throw new Error('Missing desktop root');
-	if(root.dataset.booted === 'true')return;
+	if(root.dataset.booted === 'true')return null;
 	root.dataset.booted = 'true';
+	if(host)setBrowserHost(host);
 
 	const wallpaper = create('div', 'vo-wallpaper');
 	wallpaper.id = 'vo-wallpaper';
@@ -62,6 +64,16 @@ export function bootDesktop(): void {
 	clock.setAttribute('aria-label', 'Local date and time');
 	const taskButtons = create('div', 'vo-panel-tasks');
 	panel.append(launcher, taskButtons, clock);
+	if(host){
+		const leave = create('button', 'vo-applications vo-leave', host.leaveLabel);
+		leave.type = 'button';
+		leave.title = `Back to ${host.leaveLabel}`;
+		leave.addEventListener('click', (event) => {
+			event.stopPropagation();
+			host.leave();
+		});
+		launcher.after(leave);
+	}
 	const applicationMenu = create('nav', 'vo-application-menu');
 	applicationMenu.setAttribute('aria-label', 'Applications');
 	applicationMenu.hidden = true;
@@ -384,7 +396,7 @@ export function bootDesktop(): void {
 						if(!closed)status.textContent = 'Could not load the page: ' + String(error instanceof Error ? error.message : error);
 					});
 				}else{
-					iframe.src = new URL(url, document.baseURI).href;
+					iframe.src = new URL(assetUrl(url), document.baseURI).href;
 				}
 				return () => {
 					closed = true;
@@ -581,5 +593,7 @@ export function bootDesktop(): void {
 	};
 	refreshClock();
 	window.setInterval(refreshClock, 15000);
-		bootWelcome(api);
+	// an embedding host opens the desktop on its own tabs, not on the welcome screen
+	if(!host)bootWelcome(api);
+	return api;
 }

@@ -2,28 +2,11 @@
 import 'chrome-tabs/css/chrome-tabs.css';
 import './browser.css';
 import { VibeChromeTabs } from './chromeTabStrip';
-import type { DesktopAPI } from './types';
-import { iconUrl } from './types';
-import { inspectSite, installSite, installedSites } from './catalog';
+import type { BrowserHost, DesktopAPI, HostTab, StompControllerInstance, StompFrame } from './types';
+import { assetUrl, iconUrl } from './types';
+import { inspectSite, installSite, installedSites, setDirectFetch } from './catalog';
 import { defaultStompBookmarks, loadBrowserBookmarks, saveBrowserBookmarks } from './bookmarks';
 import type { BrowserBookmark } from './bookmarks';
-
-interface StompFrame extends EventTarget {
-	url: string | null;
-	title: string | null;
-	canGoBack: boolean | null;
-	canGoForward: boolean | null;
-	go(url: string): Promise<void>;
-	back(): Promise<boolean>;
-	forward(): Promise<boolean>;
-	reload(): Promise<boolean>;
-}
-
-interface StompControllerInstance {
-	frames: StompFrame[];
-	wait(): Promise<void>;
-	createFrame(element: HTMLIFrameElement): StompFrame;
-}
 
 interface StompConstructor {
 	new (options: {
@@ -42,7 +25,104 @@ let controllerPromise: Promise<StompControllerInstance> | null = null;
 let controllerScriptPromise: Promise<void> | null = null;
 let openFromProxy: (url: string, source?: StompFrame) => void = () => {};
 const frameOpeners = new WeakMap<StompFrame, (url: string) => void>();
-const browserWindows = new Set<{ element: HTMLElement; openTab(url: string): void }>();
+interface BrowserRegistration {
+	element: HTMLElement;
+	openTab(url: string): void;
+	adoptTab(tab: HostTab, foreground: boolean): void;
+	release(): HostWindowState;
+	runKey(command: HostKey): void;
+	activeHostTab(): HostTab | null;
+	z(): number;
+}
+const browserWindows = new Set<BrowserRegistration>();
+
+// a page that embeds the desktop (src/dom/embed.ts) lends the browser its tabs: each browser
+// tab is then one of the host's, its frame element moved into the window and back, live
+let browserHost: BrowserHost | null = null;
+export function setBrowserHost(host: BrowserHost): void {
+	browserHost = host;
+	setDirectFetch(false);
+}
+
+export type HostKey = 'newTab' | 'closeTab' | 'restoreTab' | 'reload' | 'hardReload';
+
+// where a browser window was and which host tabs it held, so the host's tabs come back in
+// their windows the next time the desktop shows
+export interface HostWindowState {
+	tabs: HostTab[];
+	active: HostTab | null;
+	bounds: { x: number; y: number; width: number; height: number };
+	maximized: boolean;
+}
+
+export interface LaunchOptions {
+	tabs?: HostTab[];
+	active?: HostTab | null;
+	bounds?: HostWindowState['bounds'];
+	maximized?: boolean;
+}
+
+type Movable = Element & { moveBefore?(node: Node, child: Node | null): void };
+const atomicMove = typeof (Element.prototype as Movable).moveBefore === 'function';
+
+// Moving a frame element to another parent unloads its document. An atomic move (Chrome's
+// moveBefore) keeps the document, its scripts, scroll and focus alive. Without one, the frame
+// stays where the host keeps it and is laid over the panel instead (overlayFrame).
+function placeFrame(panel: HTMLElement, frame: HTMLIFrameElement): boolean {
+	if(frame.parentNode === panel)return true;
+	if(!atomicMove || !frame.isConnected || !panel.isConnected)return false;
+	try {
+		(panel as Movable).moveBefore?.(frame, panel.firstChild);
+		return frame.parentNode === panel;
+	}catch {
+		return false;
+	}
+}
+
+const overlayProperties = ['position', 'left', 'top', 'width', 'height', 'inset', 'transform', 'visibility', 'z-index', 'clip-path'];
+
+// the frame of a host tab that could not be moved: fixed over its panel, shown only where no
+// window or menu above it covers the panel (the frame is drawn over the whole desktop)
+function overlayFrame(panel: HTMLElement, frame: () => HTMLIFrameElement, win: HTMLElement): () => void {
+	let raf = 0;
+	const covers = (box: DOMRect, rect: DOMRect): boolean =>
+		rect.right > box.left && rect.left < box.right && rect.bottom > box.top && rect.top < box.bottom;
+	const update = () => {
+		raf = requestAnimationFrame(update);
+		const element = frame();
+		if(element.parentNode === panel)return;
+		const box = panel.getBoundingClientRect();
+		const style = element.style;
+		style.setProperty('position', 'fixed');
+		style.setProperty('inset', 'auto');
+		style.setProperty('left', `${box.left}px`);
+		style.setProperty('top', `${box.top}px`);
+		style.setProperty('width', `${box.width}px`);
+		style.setProperty('height', `${box.height}px`);
+		style.setProperty('transform', 'none');
+		style.setProperty('clip-path', 'none');
+		const z = Number(win.style.zIndex) || 0;
+		let shown = !panel.hidden && panel.getClientRects().length > 0 && !win.hidden;
+		if(shown){
+			for(const other of document.querySelectorAll<HTMLElement>('#vibeos-root .vo-window, #vibeos-root .vo-application-menu, #vibeos-root .vo-context-menu, #vibeos-root .vibe-browser-menu')){
+				if(other === win || win.contains(other) && !other.classList.contains('vibe-browser-menu'))continue;
+				if(other.hidden || !other.getClientRects().length)continue;
+				const above = other.classList.contains('vo-window') ? (Number(other.style.zIndex) || 0) > z : true;
+				if(above && covers(box, other.getBoundingClientRect())){
+					shown = false;
+					break;
+				}
+			}
+		}
+		style.setProperty('visibility', shown ? 'visible' : 'hidden');
+	};
+	update();
+	return () => {
+		cancelAnimationFrame(raf);
+		const style = frame().style;
+		for(const name of overlayProperties)style.removeProperty(name);
+	};
+}
 
 function getStomp(): StompConstructor | undefined {
 	return (window as Window & { StompController?: StompConstructor }).StompController;
@@ -65,6 +145,7 @@ function ensureStompScript(): Promise<void> {
 }
 
 function getController(): Promise<StompControllerInstance> {
+	if (browserHost) return browserHost.controller();
 	if (controllerPromise) return controllerPromise;
 	controllerPromise = (async () => {
 		if (!window.isSecureContext || !('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) {
@@ -97,6 +178,11 @@ export async function mountProxiedWebview(
 	url: string,
 	isActive: () => boolean,
 ): Promise<() => void> {
+	if(browserHost?.mountWebview){
+		const detach = await browserHost.mountWebview(iframe, url);
+		if(!isActive())detach();
+		return detach;
+	}
 	const controller = await getController();
 	if(!isActive())return () => {};
 	const frame = controller.createFrame(iframe);
@@ -172,6 +258,9 @@ interface BrowserTab {
 	request: number;
 	metadataRequest: number;
 	closed: boolean;
+	// the host's tab this one shows (an embedded desktop), and what stops following it
+	host: HostTab | null;
+	unbindHost: (() => void) | null;
 }
 
 const browserFallbackIcon = iconUrl('apps/16/internet-web-browser.png');
@@ -179,7 +268,7 @@ let nextBrowserTabId = 0;
 
 const bookmarkIcon = (bookmark: BrowserBookmark): string => {
 	try {
-		if(/(^|\.)youtube\.com$/i.test(new URL(bookmark.url).hostname))return '/icons/youtube.svg';
+		if(/(^|\.)youtube\.com$/i.test(new URL(bookmark.url).hostname))return assetUrl('/icons/youtube.svg');
 	}catch {
 		// Keep the bookmarked favicon if its URL is no longer parsable.
 	}
@@ -197,7 +286,8 @@ function tabDocument(tab: BrowserTab): Document | null {
 function siteIcon(value: unknown, pageUrl: string): string {
 	if (typeof value !== 'string' || !value.trim()) return browserFallbackIcon;
 	try {
-		if (value.startsWith('/tango/') || value.startsWith('/stomp-bookmarks/icons/')) return value;
+		if (value.startsWith(assetUrl('/tango/')) || value.startsWith(assetUrl('/stomp-bookmarks/icons/'))) return value;
+		if (value.startsWith('/tango/') || value.startsWith('/stomp-bookmarks/icons/')) return assetUrl(value);
 		if (/^(?:apps|actions|status|mimetypes)\//.test(value)) return iconUrl(value);
 		if (/^data:image\/(?:png|jpeg|gif|webp);base64,/i.test(value)) return value;
 		const parsed = new URL(value, pageUrl);
@@ -213,7 +303,7 @@ function browserButton(label: string, icon: string): HTMLButtonElement {
 	return button;
 }
 
-export function launchBrowser(api: DesktopAPI, url?: string): void {
+export function launchBrowser(api: DesktopAPI, url?: string, options: LaunchOptions = {}): void {
 	openFromProxy = (target, source) => {
 		const opener = source ? frameOpeners.get(source) : undefined;
 		if (opener) {
@@ -228,13 +318,15 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 		}
 		api.openBrowser(target);
 	};
-	api.openWindow({
+	const bounds = options.bounds;
+	const opened = api.openWindow({
 		title: 'vibeBrowser',
 		icon: 'apps/24/internet-web-browser.png',
 		chrome: true,
-		width: 900,
-		height: 600,
-		position: 'center',
+		width: bounds?.width ?? 900,
+		// the window adds its 20px of frame to the height asked for
+		height: bounds ? bounds.height - 20 : 600,
+		...(bounds ? {x: bounds.x, y: bounds.y} : {position: 'center' as const}),
 		minWidth: 360,
 		minHeight: 220,
 		render: (win) => {
@@ -311,6 +403,12 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 			menuStatus.setAttribute('role', 'status');
 			menuStatus.hidden = true;
 			menu.append(installStomp, installPwa, external, menuStatus);
+			// an embedded desktop's browser has the host's menu, the same one its own view shows;
+			// Open in browser is the window's, on the tab strip's context menu
+			if(browserHost){
+				installStomp.hidden = true;
+				installPwa.hidden = true;
+			}
 			menuWrap.append(menuToggle, menu);
 			toolbar.append(back, forward, reload, address, star, menuWrap);
 
@@ -332,6 +430,9 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 			const tabs: BrowserTab[] = [];
 			let active: BrowserTab | null = null;
 			let closed = false;
+			// the window lets its host tabs go back to the host (release), or the host closed them
+			let releasing = false;
+			const hostTabGone = new Set<BrowserTab>();
 			let bookmarks = loadBrowserBookmarks();
 			const recentlyClosed: Array<{url: string; title: string; icon: string}> = [];
 			let draggedBookmark: string | null = null;
@@ -397,7 +498,8 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 					menuStatus.textContent = '';
 				}
 			};
-			const activeUrl = (): string | null => active?.frame?.url || active?.url || null;
+			const tabUrl = (tab: BrowserTab): string | null => tab.host ? tab.host.url() || null : tab.frame?.url || tab.url;
+			const activeUrl = (): string | null => active ? tabUrl(active) : null;
 			const renderBookmarks = () => {
 				bookmarksBar.replaceChildren();
 				for (const bookmark of bookmarks) {
@@ -467,9 +569,10 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				if (closed || !active) return;
 				const current = activeUrl();
 				if (force || document.activeElement !== address) address.value = current ?? '';
-				back.disabled = active.frame?.canGoBack !== true;
-				forward.disabled = active.frame?.canGoForward !== true;
-				reload.disabled = !current || !active.frame;
+				const host = active.host;
+				back.disabled = host ? !host.canGoBack() : active.frame?.canGoBack !== true;
+				forward.disabled = host ? !host.canGoForward() : active.frame?.canGoForward !== true;
+				reload.disabled = !current || !(active.frame || host);
 				star.disabled = !current;
 				const saved = !!current && bookmarks.some(item => item.url === current);
 				star.textContent = saved ? '★' : '☆';
@@ -486,6 +589,8 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				if (tab === active) updateActive();
 			};
 			const refreshMetadata = async (tab: BrowserTab) => {
+				// a host's tab has its title and icon from the host
+				if (tab.host || browserHost) return;
 				const current = tab.frame?.url || tab.url;
 				if (!current || tab.closed) return;
 				const request = ++tab.metadataRequest;
@@ -506,7 +611,22 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				tab.notice.hidden = !message;
 			};
 			const syncFrame = (tab: BrowserTab, inspect = false) => {
-				if (closed || tab.closed || !tab.frame) return;
+				if (closed || tab.closed) return;
+				if (tab.host) {
+					const current = tab.host.url();
+					if (current) {
+						tab.url = current;
+						tab.home.hidden = true;
+						tab.iframe.hidden = false;
+					}
+					tab.title = (tab.host.title() || current || 'New Tab').slice(0, 160);
+					const icon = tab.host.icon();
+					tab.favicon = icon && /^(?:data|blob):/i.test(icon) ? icon : browserFallbackIcon;
+					tab.button.classList.toggle('is-loading', tab.host.loading());
+					updateTab(tab);
+					return;
+				}
+				if (!tab.frame) return;
 				const current = tab.frame.url;
 				if (current) {
 					if (current !== tab.url) tab.metadataRequest++;
@@ -566,6 +686,7 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				doc.addEventListener('mousedown', onFrameMiddleDown, true);
 			};
 			const connect = (tab: BrowserTab): Promise<StompFrame | null> => {
+				if (browserHost) return Promise.resolve(null);
 				if (tab.frame) return Promise.resolve(tab.frame);
 				if (tab.connection) return tab.connection;
 				tab.connection = (async () => {
@@ -595,8 +716,64 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				});
 				return tab.connection;
 			};
+			// the host's tab shows in this tab's panel: its live element moves in, or lies over it
+			const bindHost = (tab: BrowserTab, host: HostTab) => {
+				const placeholder = tab.iframe;
+				tab.host = host;
+				let element = host.element;
+				let unlay: (() => void) | null = null;
+				const show = () => {
+					element = host.element;
+					if(element !== tab.iframe){
+						if(tab.iframe === placeholder)placeholder.remove();
+						tab.iframe = element;
+					}
+					element.classList.add('vibe-browser-frame');
+					element.hidden = false;
+					if(!placeFrame(tab.panel, element) && !unlay)unlay = overlayFrame(tab.panel, () => tab.iframe, win.element);
+				};
+				const onFocus = () => {
+					win.focus();
+					if(active !== tab)switchTab(tab);
+				};
+				show();
+				element.addEventListener('focus', onFocus);
+				const unwatch = host.watch(() => {
+					if(tab.closed)return;
+					if(host.closed()){
+						closeTab(tab, false, true);
+						return;
+					}
+					if(host.element !== element){
+						element.removeEventListener('focus', onFocus);
+						show();
+						element.addEventListener('focus', onFocus);
+					}
+					syncFrame(tab);
+				});
+				tab.unbindHost = () => {
+					unwatch();
+					element.removeEventListener('focus', onFocus);
+					unlay?.();
+					element.classList.remove('vibe-browser-frame');
+					element.hidden = false;
+					tab.unbindHost = null;
+				};
+				syncFrame(tab);
+			};
 			const navigate = async (tab: BrowserTab, target: string) => {
 				if (closed || tab.closed) return;
+				if (browserHost) {
+					tab.home.hidden = true;
+					tab.iframe.hidden = false;
+					if (tab.host) tab.host.navigate(target);
+					else bindHost(tab, browserHost.createTab(target));
+					if (tab === active) {
+						browserHost.activate(tab.host as HostTab);
+						updateActive(true);
+					}
+					return;
+				}
 				const request = ++tab.request;
 				tab.button.classList.add('is-loading');
 				tab.metadataRequest++;
@@ -637,10 +814,12 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				updateMenu(false);
 				updateActive(true);
 				win.focus();
+				if (tab.host) browserHost?.activate(tab.host);
 			};
-			const closeTab = (tab: BrowserTab, alreadyRemoved = false) => {
+			const closeTab = (tab: BrowserTab, alreadyRemoved = false, hostGone = false) => {
 				if (tab.closed) return;
 				if (tabs.length === 1) {
+					if (hostGone) hostTabGone.add(tab);
 					win.close();
 					return;
 				}
@@ -672,7 +851,12 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				}
 				if (tab.frameLoad) tab.iframe.removeEventListener('load', tab.frameLoad);
 				if (tab.bridgeLoad) tab.iframe.removeEventListener('load', tab.bridgeLoad);
-				tab.iframe.src = 'about:blank';
+				if (tab.host) {
+					// the host closes its own tab, and its element with it
+					const host = tab.host;
+					tab.unbindHost?.();
+					if (!hostGone) host.close();
+				} else tab.iframe.src = 'about:blank';
 				if(!alreadyRemoved)chromeTabs.removeTab(tab.button);
 				tab.panel.remove();
 				// Cancelling a drag can emit tabReorder and sort the model during
@@ -747,11 +931,12 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 					grid.append(message);
 				}
 			};
-			const createTab = (target?: string, foreground = true) => {
+			const createTab = (target?: string, foreground = true, adopted?: HostTab) => {
 				if (closed) return;
 				const id = ++nextBrowserTabId;
+				// a host's tab arrives as it is, at once: it is already open
 				chromeTabs.addTab({id: String(id), title: 'New Tab', favicon: browserFallbackIcon}, {
-					animate: !reducedMotion.matches, background: true,
+					animate: !adopted && !reducedMotion.matches, background: true,
 				});
 				const button = chromeTabs.tabEls.at(-1);
 				if(!button)throw new Error('Chrome Tabs did not create its tab');
@@ -791,9 +976,13 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 					frame: null, owner: null, connection: null, frameNavigate: null, frameLoad: null, bridgeLoad: null,
 					innerDocument: null, url: null, title: 'New Tab',
 					favicon: browserFallbackIcon, request: 0, metadataRequest: 0, closed: false,
+					host: null, unbindHost: null,
 				};
 				tab.bridgeLoad = () => attachDocument(tab);
 				iframe.addEventListener('load', tab.bridgeLoad);
+				// a host tab's panel is out of sight when hidden, never out of layout: a frame
+				// that loses its box loses its scroll position
+				if(browserHost)panel.classList.add('vibe-browser-hosted');
 				tabs.push(tab);
 				display.append(panel);
 				button.addEventListener('click', (event) => {
@@ -838,6 +1027,10 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 					closeTab(tab);
 				});
 				if(foreground || !active)switchTab(tab);
+				if(adopted){
+					bindHost(tab, adopted);
+					return tab;
+				}
 				void connect(tab).catch((error: unknown) => {
 					if (!tab.closed && !target) setNotice(tab, 'Web proxy unavailable: ' + String(error instanceof Error ? error.message : error));
 				});
@@ -948,8 +1141,13 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				const destination = resolveAddress(address.value);
 				if (active && destination) void navigate(active, destination);
 			};
-			const command = async (name: 'back' | 'forward' | 'reload') => {
+			const command = async (name: 'back' | 'forward' | 'reload', hard = false) => {
 				const tab = active;
+				if (tab?.host) {
+					if (name === 'reload') tab.host.reload(hard);
+					else tab.host[name]();
+					return;
+				}
 				if (!tab?.frame) return;
 				try {
 					await tab.frame[name]();
@@ -1001,7 +1199,20 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 				renderBookmarks();
 				updateActive();
 			});
-			menuToggle.addEventListener('click', () => updateMenu(menu.hidden));
+			menuToggle.addEventListener('click', () => {
+				if (!browserHost) return updateMenu(menu.hidden);
+				updateMenu(false);
+				browserHost.openMenu(menuToggle);
+			});
+			if (browserHost) {
+				tabStrip.addEventListener('contextmenu', (event) => {
+					event.preventDefault();
+					updateMenu(true);
+				});
+				win.element.addEventListener('pointerdown', () => {
+					if (active?.host) browserHost?.activate(active.host);
+				});
+			}
 			installStomp.addEventListener('click', () => void install('stomp'));
 			installPwa.addEventListener('click', () => void install('pwa'));
 			external.addEventListener('click', () => {
@@ -1028,10 +1239,44 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 			window.addEventListener('storage', syncBookmarks);
 			window.addEventListener('vibeos:bookmarks-changed', syncBookmarks);
 			window.addEventListener('vibeos:apps-changed', refreshInstalled);
-			const registration = { element: win.element, openTab: (target: string) => { createTab(target); } };
+			const registration: BrowserRegistration = {
+				element: win.element,
+				openTab: (target: string) => { createTab(target); },
+				adoptTab: (host, foreground) => { createTab(undefined, foreground, host); },
+				activeHostTab: () => active?.host ?? null,
+				z: () => Number(win.element.style.zIndex) || 0,
+				runKey: (key) => {
+					if (key === 'newTab') createTab();
+					else if (key === 'closeTab' && active) closeTab(active);
+					else if (key === 'restoreTab') {
+						const last = recentlyClosed.shift();
+						if (last) createTab(last.url);
+					} else void command('reload', key === 'hardReload');
+				},
+				release: () => {
+					syncTabOrder();
+					const element = win.element;
+					const state: HostWindowState = {
+						tabs: tabs.flatMap((tab) => tab.host ? [tab.host] : []),
+						active: active?.host ?? null,
+						bounds: {x: element.offsetLeft, y: element.offsetTop, width: element.offsetWidth, height: element.offsetHeight},
+						maximized: win.isMaximized(),
+					};
+					releasing = true;
+					for (const tab of tabs) {
+						if (!tab.host) continue;
+						tab.unbindHost?.();
+						browserHost?.returnTab(tab.host);
+					}
+					win.close();
+					return state;
+				},
+			};
 			browserWindows.add(registration);
 			renderBookmarks();
-			createTab(url);
+			if (options.tabs?.length) {
+				for (const host of options.tabs) createTab(undefined, host === (options.active ?? options.tabs[0]), host);
+			} else createTab(url);
 			return () => {
 				closed = true;
 				stopDrag();
@@ -1064,6 +1309,13 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 					}
 					if (tab.frameLoad) tab.iframe.removeEventListener('load', tab.frameLoad);
 					if (tab.bridgeLoad) tab.iframe.removeEventListener('load', tab.bridgeLoad);
+					if (tab.host) {
+						// closing the window closes its tabs; releasing it hands them back
+						const host = tab.host;
+						tab.unbindHost?.();
+						if (!releasing && !hostTabGone.has(tab)) host.close();
+						continue;
+					}
 					tab.iframe.src = 'about:blank';
 					tab.iframe.remove();
 				}
@@ -1071,4 +1323,34 @@ export function launchBrowser(api: DesktopAPI, url?: string): void {
 			};
 		},
 	});
+	if(options.maximized && !opened.isMaximized())opened.toggleMaximize();
+}
+
+// the host's tabs, each in its window again (the state releaseHostTabs gave), and the window
+// of `focus` on top
+export function adoptHostWindows(api: DesktopAPI, windows: LaunchOptions[], focus: HostTab | null): void {
+	for(const options of windows)launchBrowser(api, undefined, options);
+	const owner = [...browserWindows].find((entry) => entry.activeHostTab() === focus);
+	if(owner)owner.element.dispatchEvent(new PointerEvent('pointerdown'));
+}
+
+// a tab the host opened while the desktop shows: in the browser window on top, as a page's
+// new tab opens in its own window
+export function adoptHostTab(api: DesktopAPI, tab: HostTab): void {
+	const top = [...browserWindows].sort((a, b) => b.z() - a.z())[0];
+	if(top)top.adoptTab(tab, true);
+	else launchBrowser(api, undefined, {tabs: [tab], active: tab});
+}
+
+// every browser window gives its host tabs back to the host and closes, top window last
+export function releaseHostTabs(): { windows: HostWindowState[]; focus: HostTab | null } {
+	const windows = [...browserWindows].sort((a, b) => a.z() - b.z());
+	const focus = windows.at(-1)?.activeHostTab() ?? null;
+	return {windows: windows.map((entry) => entry.release()).filter((state) => state.tabs.length), focus};
+}
+
+// a browser key the host heard (a key pressed in a page): the window on top runs it
+export function runHostKey(key: HostKey): void {
+	const top = [...browserWindows].sort((a, b) => b.z() - a.z())[0];
+	top?.runKey(key);
 }

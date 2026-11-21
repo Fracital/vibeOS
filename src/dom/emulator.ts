@@ -1,6 +1,7 @@
 // v86 virtual machine, using the vendored core, BIOS and images in scripts/v86/.
 import './emulator.css';
 import type { DesktopAPI, DesktopWindow } from './types';
+import { assetUrl } from './types';
 
 type Disk = { url: string; size: number; async?: boolean; fixed_chunk_size?: number; use_parts?: boolean };
 type Profile = {
@@ -50,7 +51,7 @@ type CurlTransport = {
 	fetch(url: string, options?: RequestInit): Promise<Response>;
 };
 
-const v86Base = '/scripts/v86/';
+const v86Base = assetUrl('/scripts/v86/');
 const disk = (name: string): string => `${v86Base}images/${name}`;
 const remote = (name: string): string => `https://i.copy.sh/${name}`;
 const wispEndpoint = 'wss://holywisp.fracit.al/';
@@ -118,7 +119,7 @@ async function ensureCurl(): Promise<CurlTransport> {
 	if (curlPromise) return curlPromise;
 	curlPromise = (async () => {
 		if (!getCurl()) {
-			curlScriptPromise ??= appendScript('/scripts/net/libcurl.js').catch((error: unknown) => {
+			curlScriptPromise ??= appendScript(assetUrl('/scripts/net/libcurl.js')).catch((error: unknown) => {
 				curlScriptPromise = null;
 				throw error;
 			});
@@ -126,7 +127,7 @@ async function ensureCurl(): Promise<CurlTransport> {
 		}
 		const curl = getCurl();
 		if (!curl) throw new Error('libcurl transport is missing');
-		await curl.load_wasm('/scripts/net/libcurl.wasm');
+		await curl.load_wasm(assetUrl('/scripts/net/libcurl.wasm'));
 		curl.set_websocket(wispEndpoint);
 		return curl;
 	})().catch((error: unknown) => {
@@ -270,7 +271,7 @@ export function launchEmulator(api: DesktopAPI, profile = 'freedos'): void {
 			root.className = 'vibe-emulator';
 				const statusIcon = document.createElement('img');
 				statusIcon.className = 'vibe-emulator-player-status';
-				statusIcon.src = '/tango/actions/24/player_play.png';
+				statusIcon.src = assetUrl('/tango/actions/24/player_play.png');
 				statusIcon.alt = '';
 				statusIcon.setAttribute('aria-hidden', 'true');
 				win.element.querySelector('.vo-titlebar')?.append(statusIcon);
@@ -377,7 +378,7 @@ export function launchEmulator(api: DesktopAPI, profile = 'freedos'): void {
 					if(closed)return;
 					status.textContent = text;
 					statusIcon.src = text.startsWith('Running ') || instance?.is_running() ?
-						'/tango/actions/24/player_pause.png' : '/tango/actions/24/player_play.png';
+						assetUrl('/tango/actions/24/player_pause.png') : assetUrl('/tango/actions/24/player_play.png');
 				};
 			const enableKeys = () => {
 				if (instance) instance.keyboard_set_status(document.activeElement === screen && instance.is_running());

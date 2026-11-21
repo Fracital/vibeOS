@@ -470,6 +470,12 @@
 	display: none;
 }
 
+.vibe-browser-panel.vibe-browser-hosted[hidden] {
+	display: block;
+	visibility: hidden;
+	pointer-events: none;
+}
+
 .vibe-browser-frame {
 	display: block;
 	position: absolute;

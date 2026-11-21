@@ -1,6 +1,6 @@
 import type { AppEntry, DesktopAPI, DesktopWindow } from './types';
 import { openWelcome, readWelcomeOnBoot, saveWelcomeOnBoot } from './welcome';
-import { iconUrl } from './types';
+import { assetUrl, iconUrl } from './types';
 import { cachedSiteInfo, inspectSite, installSite, installedSites, uninstallSite } from './catalog';
 import './catalog.css';
 import type { InstalledSite } from './catalog';
@@ -316,7 +316,7 @@ function openWallpaperPicker(api: DesktopAPI): void {
 				const tile = button('', () => choose(entry.path), 'vo-app-wallpaper-tile');
 				tile.dataset.wallpaper = entry.path;
 				const preview = element('img');
-				preview.src = entry.path;
+				preview.src = assetUrl(entry.path);
 				preview.alt = '';
 				preview.loading = 'lazy';
 				append(tile, preview, element('span', '', entry.label));
@@ -953,7 +953,7 @@ function openVmProfiles(api: DesktopAPI): void {
 // the desktop accepts absolute HTTP(S) icons after validating their origin and protocol.
 function siteIconForMenu(icon: string | undefined, fallback: string): string {
 	if(!icon)return fallback;
-	if(icon.startsWith('/tango/'))return icon;
+	if(icon.startsWith('/tango/'))return assetUrl(icon);
 	try{
 		const value = new URL(icon);
 		if(value.username || value.password)return fallback;
@@ -972,9 +972,9 @@ const builtinSites = [
 	'https://canvas.apps.chrome/',
 	'https://duckduckgo.com/',
 	'https://bing.com/',
-	'/appfiles/2048/index.html',
-	'/appfiles/tetris/index.html',
-	'/appfiles/breakout/index.html',
+	assetUrl('/appfiles/2048/index.html'),
+	assetUrl('/appfiles/tetris/index.html'),
+	assetUrl('/appfiles/breakout/index.html'),
 ];
 
 function refreshBuiltinMetadata(): void {
@@ -1055,10 +1055,10 @@ export function openAppManager(api: DesktopAPI): void {
 					const card = element('article', 'vo-app-catalog-card');
 					const picture = element('img', 'vo-app-catalog-icon');
 					picture.alt = '';
-					picture.src = siteIconForMenu(site.icon, '/tango/mimetypes/16/html.png');
+					picture.src = siteIconForMenu(site.icon, assetUrl('/tango/mimetypes/16/html.png'));
 					picture.loading = 'lazy';
 					picture.addEventListener('error', () => {
-						picture.src = '/tango/mimetypes/16/html.png';
+						picture.src = assetUrl('/tango/mimetypes/16/html.png');
 					}, {once: true});
 					const details = element('div', 'vo-app-catalog-details');
 					const heading = element('h3', '', site.title);

@@ -2,6 +2,16 @@
 // cannot be initiated silently from inside an iframe, so the PWA entries here are
 // installed into the vibeOS application launcher, not the host operating system.
 
+import { assetUrl } from './types';
+
+// a host that embeds the desktop shows sites through its proxy only: a request of the host's
+// own page to another site would bypass it, so metadata then comes from the documents alone
+let directFetch = true;
+export const setDirectFetch = (enabled: boolean): void => { directFetch = enabled; };
+const mayFetch = (url: string): boolean => {
+	try { return directFetch || new URL(url, location.href).origin === location.origin; } catch { return false; }
+};
+
 export interface SiteInfo {
 	url: string;
 	title: string;
@@ -19,7 +29,7 @@ export interface InstalledSite extends SiteInfo {
 
 const siteCacheKey = 'vibeos.sites.v1';
 const installsKey = 'vibeos.installed-apps.v1';
-const tangoFallback = '/tango/mimetypes/16/html.png';
+const tangoFallback = assetUrl('/tango/mimetypes/16/html.png');
 const cacheAge = 7 * 24 * 3600 * 1000;
 const maxApps = 80;
 const memoryStorage = new Map<string, string>();
@@ -183,6 +193,7 @@ const inspectManifest = async (site: SiteInfo): Promise<SiteInfo> => {
 	if(!site.manifestUrl)return site;
 	try {
 		const signal = AbortSignal.timeout(4000);
+		if(!mayFetch(site.manifestUrl))return site;
 		const response = await fetch(site.manifestUrl, {signal, credentials: 'omit', redirect: 'follow'});
 		if(!response.ok || Number(response.headers.get('content-length') || 0) > 256_000)return site;
 		const source = await response.text();
@@ -217,7 +228,7 @@ export async function inspectSite(value: string, doc?: Document | null): Promise
 	const previous = readCache()[url];
 	if(!doc && previous && Date.now() - previous.updatedAt < cacheAge)return previous.site;
 	let page: Document | null = doc ?? null;
-	if(!page) {
+	if(!page && mayFetch(url)) {
 		try {
 			const response = await fetch(url, {credentials: 'omit', signal: AbortSignal.timeout(4500), redirect: 'follow'});
 			const type = response.headers.get('content-type') || '';
