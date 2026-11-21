@@ -69,12 +69,13 @@ Breakout = {
     ],
 
     sounds: {
-      brick:    '/sound/breakout/brick.mp3',
-      paddle:   '/sound/breakout/paddle.mp3',
-      go:       '/sound/breakout/go.mp3',
-      levelup:  '/sound/breakout/levelup.mp3',
-      loselife: '/sound/breakout/loselife.mp3',
-      gameover: '/sound/breakout/gameover.mp3'
+      // vibeOS: sound files are served from the app's original directory
+      brick:    '/appfiles/breakout/sound/breakout/brick.mp3',
+      paddle:   '/appfiles/breakout/sound/breakout/paddle.mp3',
+      go:       '/appfiles/breakout/sound/breakout/go.mp3',
+      levelup:  '/appfiles/breakout/sound/breakout/levelup.mp3',
+      loselife: '/appfiles/breakout/sound/breakout/loselife.mp3',
+      gameover: '/appfiles/breakout/sound/breakout/gameover.mp3'
     }
 
   },

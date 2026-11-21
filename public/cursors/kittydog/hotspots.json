@@ -1,0 +1,94 @@
+{
+  "left_ptr": [
+    0,
+    0
+  ],
+  "pointer": [
+    0,
+    0
+  ],
+  "hand2": [
+    0,
+    0
+  ],
+  "text": [
+    15,
+    15
+  ],
+  "grab": [
+    0,
+    0
+  ],
+  "grabbing": [
+    15,
+    15
+  ],
+  "wait": [
+    0,
+    0
+  ],
+  "crosshair": [
+    15,
+    15
+  ],
+  "n-resize": [
+    15,
+    17
+  ],
+  "s-resize": [
+    15,
+    17
+  ],
+  "e-resize": [
+    14,
+    15
+  ],
+  "w-resize": [
+    14,
+    15
+  ],
+  "ew-resize": [
+    14,
+    15
+  ],
+  "ns-resize": [
+    15,
+    17
+  ],
+  "nwse-resize": [
+    16,
+    14
+  ],
+  "nesw-resize": [
+    16,
+    14
+  ],
+  "not_allowed": [
+    15,
+    14
+  ],
+  "help": [
+    0,
+    0
+  ],
+  "move": [
+    15,
+    15
+  ],
+  "progress": [
+    0,
+    0
+  ],
+  "pencil": [
+    9,
+    8
+  ],
+  "all-scroll": [
+    15,
+    15
+  ],
+  "half-busy": [
+    0,
+    0
+  ]
+}

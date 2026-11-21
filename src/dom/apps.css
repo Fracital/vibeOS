@@ -1,0 +1,640 @@
+.vo-app-root {
+	box-sizing: border-box;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	overflow: auto;
+	background: #ccc;
+	color: #111;
+	font: 13px 'Open Sans', sans-serif;
+}
+
+.vo-app-root * {
+	box-sizing: border-box;
+}
+
+.vo-app-root button,
+.vo-app-root input,
+.vo-app-root textarea {
+	font: inherit;
+}
+
+.vo-app-root button {
+	cursor: pointer;
+}
+
+.vo-app-button {
+	padding: 4px 11px;
+	border: 1px solid #be582d;
+	border-radius: 8px;
+	background: linear-gradient(#f58c56, #d55c21);
+	color: white;
+	font-size: 13px;
+	line-height: 16px;
+}
+
+.vo-app-button:hover,
+.vo-app-tab:hover {
+	background: linear-gradient(#ffa374, #e96b30);
+}
+
+.vo-app-button:focus-visible,
+.vo-app-tab:focus-visible,
+.vo-app-wallpaper-tile:focus-visible,
+.vo-app-wallpaper-swatch:focus-visible {
+	outline: 2px solid #286ac6;
+	outline-offset: 2px;
+}
+
+.vo-app-note {
+	margin: 8px 0;
+	line-height: 1.45;
+}
+
+.vo-app-paragraph {
+	margin: 0 0 12px;
+	font-size: 14px;
+}
+
+.vo-app-root hr {
+	width: 100%;
+	height: 2px;
+	margin: 16px 0 10px;
+	border: 0;
+	background: #111;
+}
+
+.vo-app-inline-controls {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 7px;
+	margin: 8px 0;
+}
+
+.vo-app-input {
+	min-width: 100px;
+	flex: 1 1 160px;
+	height: 29px;
+	padding: 3px 7px;
+	border: 1px solid #888;
+	border-radius: 2px;
+	background: #fff;
+}
+
+.vo-app-settings {
+	display: flex;
+	overflow: hidden;
+	font-size: 16px;
+}
+
+.vo-app-settings-sidebar {
+	display: flex;
+	flex: 0 0 130px;
+	flex-direction: column;
+	align-items: center;
+	gap: 15px;
+	min-width: 0;
+	padding: 15px 12px;
+	border-radius: 0 0 10px 0;
+	background: #212121;
+}
+
+.vo-app-tab {
+	width: 100px;
+	min-height: 50px;
+	padding: 6px 5px;
+	border: 1px solid #b95420;
+	border-radius: 7px;
+	background: linear-gradient(#f48e55, #d56029);
+	color: white;
+	font-size: 14px;
+	text-align: center;
+}
+
+.vo-app-tab.vo-app-selected {
+	background: linear-gradient(#f6a36a, #df692f);
+}
+
+.vo-app-settings-content {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 14px 10px 15px 15px;
+	overflow: auto;
+}
+
+.vo-app-settings-general {
+	line-height: 20px;
+}
+
+.vo-app-settings-general hr {
+	margin-top: 16px;
+	margin-bottom: 10px;
+}
+
+.vo-app-settings-general p {
+	margin: 11px 0 14px 5px;
+}
+
+.vo-app-settings-general .vo-app-button {
+	width: 125px;
+	height: 25px;
+	margin-left: 1px;
+	margin-top: 3px;
+	padding: 2px 7px;
+	font-size: 13px;
+	line-height: 19px;
+	text-align: left;
+}
+
+.vo-app-settings-accounts {
+	font-size: 13px;
+}
+
+.vo-app-settings-accounts hr {
+	margin: 12px 0;
+}
+
+.vo-app-settings-env {
+	font-size: 15px;
+	line-height: 1.45;
+	overflow-wrap: anywhere;
+}
+
+.vo-app-settings-env p {
+	margin: 0 0 10px;
+}
+
+.vo-app-settings-about {
+	text-align: left;
+	font-size: 15px;
+}
+
+.vo-app-settings-about h2 {
+	margin: 14px 0 10px;
+	font-size: 28px;
+	text-align: center;
+}
+
+.vo-app-settings-about p {
+	margin: 12px 0 7px;
+}
+
+.vo-app-credit {
+	display: block;
+	margin: 0 0 9px;
+}
+
+.vo-app-settings-about footer {
+	margin-top: 15px;
+	text-align: center;
+}
+
+.vo-app-wallpapers {
+	padding: 0 20px 8px;
+	overflow: auto;
+}
+
+.vo-app-wallpaper-heading {
+	margin: 0 0 12px;
+	font-size: 13px;
+	font-weight: 400;
+}
+
+.vo-app-wallpaper-tiles {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, 128px);
+	justify-items: start;
+	gap: 12px 19px;
+	margin-bottom: 15px;
+}
+
+.vo-app-wallpaper-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+	width: 128px;
+	padding: 0;
+	border: 0;
+	background: transparent;
+	color: #111;
+	font-size: 13px;
+	white-space: nowrap;
+}
+
+.vo-app-wallpaper-tile img {
+	width: 128px;
+	height: 72px;
+	object-fit: cover;
+}
+
+.vo-app-wallpaper-tile.vo-app-active-wallpaper img {
+	outline: 2px solid #111;
+	outline-offset: 1px;
+}
+
+.vo-app-wallpaper-colors {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 2px;
+}
+
+.vo-app-wallpaper-swatch {
+	width: 44px;
+	height: 44px;
+	overflow: hidden;
+	border: 0;
+	border-radius: 0;
+	color: transparent;
+}
+
+.vo-app-wallpaper-swatch.vo-app-active-wallpaper {
+	outline: 2px solid #111;
+	outline-offset: 1px;
+}
+
+.vo-app-editor {
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background: white;
+}
+
+.vo-app-editor-toolbar {
+	position: relative;
+	z-index: 2;
+	display: flex;
+	flex: 0 0 25px;
+	align-items: center;
+	gap: 8px;
+	min-height: 25px;
+	padding: 0 10px;
+	background: #404040;
+	color: white;
+	font-size: 13px;
+}
+
+.vo-app-editor-menu {
+	position: relative;
+}
+
+.vo-app-editor-menu summary {
+	padding: 4px 9px;
+	cursor: pointer;
+	list-style: none;
+}
+
+.vo-app-editor-menu summary::-webkit-details-marker {
+	display: none;
+}
+
+.vo-app-editor-menu[open] summary,
+.vo-app-editor-menu summary:hover {
+	background: #555;
+}
+
+.vo-app-editor-menu-items {
+	position: absolute;
+	top: 100%;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	width: 175px;
+	padding: 3px;
+	border: 1px solid #888;
+	background: #f8f8f8;
+	box-shadow: 2px 3px 8px #0004;
+}
+
+.vo-app-editor-action {
+	width: 100%;
+	padding: 5px 8px;
+	border: 0;
+	background: transparent;
+	color: #111;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.vo-app-editor-action:hover {
+	background: #3483d6;
+	color: white;
+}
+
+.vo-app-editor-rich {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	margin-left: auto;
+	cursor: pointer;
+}
+
+.vo-app-editor-rich input {
+	width: 34px;
+	height: 16px;
+	margin: 0;
+	appearance: none;
+	border: 1px solid #bbb;
+	border-radius: 9px;
+	background: #d9d9d9;
+	position: relative;
+	cursor: pointer;
+}
+
+.vo-app-editor-rich input::before {
+	content: '';
+	position: absolute;
+	left: -1px;
+	top: -1px;
+	width: 17px;
+	height: 16px;
+	border-radius: 9px;
+	background: linear-gradient(#f99b5b, #da6b2b);
+}
+
+.vo-app-editor-rich input:checked::before {
+	left: 17px;
+}
+
+.vo-app-editor-body {
+	display: flex;
+	flex: 1 1 auto;
+	min-height: 0;
+	background: #fff;
+}
+
+.vo-app-editor-numbers {
+	flex: 0 0 28px;
+	padding: 12px 5px 10px 2px;
+	overflow: hidden;
+	background: #f0f0f2;
+	color: #333;
+	font: 14px/20px 'Inconsolata', monospace;
+	text-align: right;
+	white-space: pre;
+	user-select: none;
+}
+
+.vo-app-editor-numbers.vo-app-hidden {
+	display: none;
+}
+
+.vo-app-editor-text {
+	flex: 1 1 auto;
+	min-width: 0;
+	height: 100%;
+	margin: 0;
+	padding: 12px 8px;
+	resize: none;
+	border: 0;
+	outline: none;
+	background: #fff;
+	color: #111;
+	font: 14px/20px 'Inconsolata', monospace;
+	tab-size: 4;
+}
+
+.vo-app-editor-text:focus-visible {
+	outline: none;
+}
+
+.vo-app-editor-preview {
+	display: none;
+}
+
+.vo-app-editor-in-rich .vo-app-editor-numbers {
+	display: none;
+}
+
+.vo-app-editor-in-rich .vo-app-editor-text {
+	flex-basis: 50%;
+	border-right: 1px solid #ddd;
+}
+
+.vo-app-editor-in-rich .vo-app-editor-preview {
+	display: block;
+	flex: 1 1 50%;
+	min-width: 0;
+	padding: 12px;
+	overflow: auto;
+	background: #fff;
+}
+
+.vo-app-editor-status {
+	display: flex;
+	flex: 0 0 22px;
+	justify-content: space-between;
+	align-items: center;
+	gap: 8px;
+	padding: 0 12px;
+	overflow: hidden;
+	background: #404040;
+	color: #fff;
+	font-size: 12px;
+	white-space: nowrap;
+}
+
+.vo-app-editor-status span:first-child {
+	white-space: pre;
+}
+
+.vo-app-terminal {
+	display: flex;
+	flex-direction: column;
+	padding: 6px 10px 10px;
+	overflow: hidden;
+	background: #000;
+	color: #fff;
+	font: 14px/16px 'Inconsolata', 'Roboto Mono', monospace;
+}
+
+.vo-app-terminal-output {
+	flex: 1 1 auto;
+	min-height: 0;
+	padding: 2px 5px;
+	overflow: auto;
+	white-space: pre-wrap;
+	overflow-wrap: anywhere;
+	user-select: text;
+}
+
+.vo-app-terminal-form {
+	display: flex;
+	flex: 0 0 26px;
+	gap: 5px;
+	margin-top: 8px;
+}
+
+.vo-app-terminal-input {
+	flex: 1 1 auto;
+	min-width: 0;
+	padding: 2px 5px;
+	border: 2px solid #888;
+	border-radius: 0;
+	background: #000;
+	color: #fff;
+	font: 14px 'Inconsolata', monospace;
+	outline: none;
+}
+
+.vo-app-terminal-input:focus {
+	border-color: #bbb;
+}
+
+.vo-app-terminal-run {
+	padding: 2px 8px;
+	border: 1px solid #777;
+	background: #282828;
+	color: white;
+}
+
+.vo-app-terminal-sandbox {
+	position: absolute;
+	width: 0;
+	height: 0;
+	border: 0;
+	visibility: hidden;
+	pointer-events: none;
+}
+
+.vo-app-doc-viewer {
+	padding: 15px 20px;
+	overflow: auto;
+	background: #fff;
+}
+
+.vo-app-markdown {
+	font-size: 14px;
+	line-height: 1.5;
+	overflow-wrap: anywhere;
+}
+
+.vo-app-markdown h1,
+.vo-app-markdown h2,
+.vo-app-markdown h3 {
+	margin: 12px 0 8px;
+	line-height: 1.2;
+}
+
+.vo-app-markdown p {
+	margin: 0 0 5px;
+}
+
+.vo-app-markdown blockquote {
+	margin: 8px 0;
+	padding: 6px 12px;
+	border-left: 4px solid #bbb;
+	background: #f5f5f5;
+}
+
+.vo-app-markdown pre {
+	max-width: 100%;
+	margin: 10px 0;
+	padding: 12px;
+	overflow: auto;
+	background: #eee;
+	font: 13px 'Inconsolata', monospace;
+}
+
+.vo-app-markdown code {
+	padding: 1px 3px;
+	background: #eee;
+	font: 13px 'Inconsolata', monospace;
+}
+
+.vo-app-markdown img {
+	max-width: 100%;
+	height: auto;
+}
+
+.vo-app-markdown a {
+	color: #1859a5;
+	text-decoration: underline;
+	cursor: pointer;
+}
+
+.vo-app-md-list-item {
+	margin: 3px 0;
+	padding-left: 20px;
+	text-indent: -12px;
+}
+
+.vo-app-md-list-item::before {
+	content: '• ';
+}
+
+.vo-app-md-space {
+	height: 8px;
+}
+
+.vo-app-transcript {
+	padding: 14px 15px;
+	overflow: auto;
+	background: white;
+	font-size: 14px;
+}
+
+.vo-app-transcript p {
+	margin: 0 0 4px;
+	overflow-wrap: anywhere;
+}
+
+.vo-app-demo,
+.vo-app-vm-profiles,
+.vo-app-cats {
+	padding: 18px;
+	overflow: auto;
+}
+
+.vo-app-demo h2,
+.vo-app-vm-profiles h2 {
+	margin: 0 0 12px;
+	font-size: 18px;
+}
+
+.vo-app-demo .vo-app-button {
+	margin-right: 8px;
+}
+
+.vo-app-profile-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(135px, 1fr));
+	gap: 7px;
+	margin-bottom: 18px;
+}
+
+.vo-app-cats {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	align-items: flex-start;
+}
+
+.vo-app-cats img {
+	flex: 1 1 auto;
+	min-height: 0;
+	max-width: 100%;
+	max-height: calc(100% - 90px);
+	object-fit: contain;
+}
+
+@media (max-width: 540px) {
+	.vo-app-settings-sidebar {
+		flex-basis: 110px;
+		padding: 10px 5px;
+	}
+
+	.vo-app-settings-content {
+		padding-left: 10px;
+	}
+
+	.vo-app-tab {
+		width: 96px;
+	}
+
+	.vo-app-editor-in-rich .vo-app-editor-text {
+		display: none;
+	}
+}

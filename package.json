@@ -1,0 +1,21 @@
+{
+	"name": "vibeos",
+	"version": "0.1.0",
+	"private": true,
+	"type": "module",
+	"scripts": {
+		"dev": "astro dev --host",
+		"build:desktop": "tsc --project tsconfig.dom.json --noEmit",
+		"build:legacy": "tsc --project tsconfig.desktop.json",
+		"build": "npm run build:desktop && astro build && node tooling/check-build.mjs",
+		"preview": "astro preview",
+		"check": "npm run build:desktop && node tooling/check-build.mjs --source"
+	},
+	"devDependencies": {
+		"astro": "^7.4.13",
+		"typescript": "^5.9.3"
+	},
+	"dependencies": {
+		"chrome-tabs": "5.4.0"
+	}
+}

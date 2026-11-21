@@ -1,0 +1,705 @@
+.vibe-browser {
+	--browser-glass-top: #8fb6d8;
+	--browser-glass-bottom: #c5d8e9;
+	--browser-text: #293844;
+	--browser-toolbar-surface: linear-gradient(180deg, #f5f7f9 0%, #eef2f5 60%, #e5ebf1 100%);
+	display: flex;
+	flex-direction: column;
+	position: relative;
+	width: 100%;
+	height: 100%;
+	min-width: 0;
+	min-height: 0;
+	overflow: hidden;
+	background: #fff;
+	font-family: 'Open Sans', Arial, sans-serif;
+	font-size: 12px;
+	color: var(--browser-text);
+}
+
+.vibe-browser button,
+.vibe-browser [role='tab'] {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+}
+
+.vibe-browser button img,
+.vibe-browser button span,
+.vibe-browser [role='tab'] img,
+.vibe-browser [role='tab'] span {
+	pointer-events: none;
+	user-select: none;
+	-webkit-user-drag: none;
+}
+
+.vibe-browser-tabstrip {
+	display: flex;
+	align-items: flex-end;
+	gap: 0;
+	flex: 0 0 36px;
+	min-width: 0;
+	padding: 4px 5px 0 7px;
+	border-bottom: 1px solid #9db8cf;
+	background: linear-gradient(180deg, #92b8d8 0%, #a7c6e0 41%, #c3d9eb 89%, #d0e0ed 100%);
+	box-shadow: inset 0 1px rgb(255 255 255 / 38%);
+	user-select: none;
+	-webkit-user-select: none;
+}
+
+.vo-window-chrome:not(.vo-active) .vibe-browser-tabstrip {
+	background: linear-gradient(#b6c5d1, #d3dde4);
+}
+
+/* Chrome Tabs owns tab geometry; the vibeOS adapter owns pointer dragging. */
+.vibe-browser-tablist.chrome-tabs {
+	flex: 1 1 auto;
+	width: 0;
+	max-width: none;
+	min-width: 0;
+	height: 32px;
+	padding: 2px 0 0;
+	border-radius: 0;
+	background: transparent;
+	overflow-x: auto;
+	overflow-y: hidden;
+	overscroll-behavior-x: contain;
+	scroll-behavior: auto;
+	scrollbar-width: none;
+}
+
+.vibe-browser-tablist.chrome-tabs::-webkit-scrollbar {
+	display: none;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tabs-content {
+	width: 100%;
+	height: 100%;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab {
+	height: 30px;
+	cursor: grab;
+	touch-action: none;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab.chrome-tab-is-dragging {
+	cursor: grabbing;
+	z-index: 30;
+	filter: drop-shadow(0 4px 6px rgb(35 64 97 / 25%));
+	transition: none !important;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab.chrome-tab-is-settling {
+	z-index: 20;
+	pointer-events: none;
+}
+
+.vibe-browser-tablist.chrome-tabs.chrome-tabs-is-sorting .chrome-tab:not(.chrome-tab-is-dragging) {
+	transition: transform 165ms cubic-bezier(.2, .85, .25, 1);
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab .chrome-tab-content {
+	padding: 7px 7px 5px;
+	border-top-left-radius: 6px;
+	border-top-right-radius: 6px;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab .chrome-tab-background > svg .chrome-tab-geometry {
+	fill: #c0d4e5;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab[active] .chrome-tab-background > svg .chrome-tab-geometry {
+	fill: #f3f6fa;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab:not([active]) .chrome-tab-background {
+	opacity: .62;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab:not([active]):hover .chrome-tab-background {
+	opacity: 1;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab .chrome-tab-title {
+	font: 12px/16px 'Open Sans', Arial, sans-serif;
+	color: #41566a;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab[active] .chrome-tab-title {
+	color: #203e57;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab .chrome-tab-favicon {
+	margin-left: 2px;
+	background-repeat: no-repeat;
+	background-position: center;
+	background-size: contain;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab .chrome-tab-close {
+	cursor: pointer;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab .chrome-tab-close:hover {
+	background-color: #d3e0ee;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab:focus-visible {
+	outline: 1px dotted #315f84;
+	outline-offset: -6px;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab .chrome-tab-drag-handle {
+	cursor: grab;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab.chrome-tab-is-dragging .chrome-tab-drag-handle {
+	cursor: grabbing;
+}
+
+.vibe-browser-tablist.chrome-tabs .chrome-tab.is-loading .chrome-tab-favicon {
+	border: 2px solid #98bacf;
+	border-top-color: #386eaa;
+	border-radius: 50%;
+	animation: vo-chrome-loading 900ms linear infinite;
+	background-image: none !important;
+}
+
+@keyframes vo-chrome-loading {
+	to { transform: rotate(360deg); }
+}
+
+.vibe-browser-new-tab {
+	display: grid;
+	place-items: center;
+	flex: 0 0 27px;
+	width: 27px;
+	height: 24px;
+	margin: 0 0 2px 9px;
+	padding: 0 0 2px;
+	border: 1px solid #8cacc8;
+	border-radius: 5px 5px 2px 2px;
+	background: linear-gradient(#e1edf6, #b6cee2);
+	box-shadow: inset 0 1px rgb(255 255 255 / 55%), 0 1px 1px rgb(50 80 110 / 15%);
+	color: #355b7b;
+	font: bold 19px/20px Arial, sans-serif;
+	cursor: pointer;
+	transition: background-color 120ms ease, filter 120ms ease;
+}
+
+.vibe-browser-new-tab:hover {
+	background: linear-gradient(#fff, #c4dcef);
+	filter: brightness(1.04);
+}
+
+.vibe-browser-new-tab:active {
+	background: linear-gradient(#a4c2d9, #d9eaf7);
+}
+
+/* These are the original vibeOS Tango window buttons moved from the titlebar. */
+.vibe-browser-tabstrip > .vo-window-controls {
+	position: relative;
+	right: auto;
+	top: auto;
+	align-self: flex-start;
+	flex: 0 0 auto;
+	margin: 3px 1px 0 5px;
+	gap: 2px;
+}
+
+.vo-window-chrome.vo-maximized .vibe-browser-tabstrip {
+	border-radius: 0;
+}
+
+.vibe-browser-toolbar {
+	display: flex;
+	align-items: center;
+	gap: 4px;
+	flex: 0 0 39px;
+	min-width: 0;
+	padding: 5px 8px 5px 6px;
+	border-bottom: 0;
+	background: var(--browser-toolbar-surface);
+	background-size: 100% 65px;
+	background-position: 0 0;
+	box-shadow: inset 0 1px #fff;
+	box-sizing: border-box;
+}
+
+.vibe-browser-toolbar button {
+	flex: 0 0 auto;
+	cursor: pointer;
+}
+
+.vibe-browser-nav {
+	display: grid;
+	place-items: center;
+	width: 28px;
+	height: 28px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	background: transparent;
+	color: #4c5b69;
+}
+
+.vibe-browser-nav:hover:not(:disabled) {
+	border-color: #c0c9d2;
+	background: linear-gradient(#fff, #dbe6ef);
+	box-shadow: inset 0 1px #fff;
+}
+
+.vibe-browser-nav:active:not(:disabled) {
+	background: #c6d6e4;
+	box-shadow: inset 0 1px 2px rgb(40 72 100 / 15%);
+}
+
+.vibe-browser-toolbar button:disabled {
+	opacity: .38;
+	cursor: default;
+}
+
+.vibe-browser-nav img {
+	width: 16px;
+	height: 16px;
+	object-fit: contain;
+	pointer-events: none;
+}
+
+.vibe-browser-address {
+	display: block;
+	flex: 1 1 auto;
+	width: 0;
+	min-width: 54px;
+	height: 27px;
+	padding: 3px 9px;
+	border: 1px solid #aab6c0;
+	border-radius: 3px;
+	background: #fff;
+	box-shadow: inset 0 1px 2px rgb(45 70 92 / 9%), 0 1px #fff;
+	font: 12px 'Open Sans', Arial, sans-serif;
+	color: #283c4f;
+	user-select: text;
+	-webkit-user-select: text;
+}
+
+.vibe-browser-address:focus {
+	outline: none;
+	border-color: #7ca7cd;
+	box-shadow: 0 0 0 1px #bad6ec, inset 0 1px 2px rgb(45 70 92 / 8%);
+}
+
+.vibe-browser-star,
+.vibe-browser-menu-toggle {
+	display: grid;
+	place-items: center;
+	width: 26px;
+	height: 27px;
+	padding: 0;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	background: transparent;
+	color: #78899a;
+	font: 21px/1 Arial, sans-serif;
+}
+
+.vibe-browser-star:hover:not(:disabled),
+.vibe-browser-menu-toggle:hover:not(:disabled) {
+	border-color: #c4cdd5;
+	background: linear-gradient(#fff, #dce6ef);
+}
+
+.vibe-browser-star:not(:disabled) {
+	color: #c6a84b;
+	text-shadow: 0 1px #fff;
+}
+
+.vibe-browser-menu-toggle {
+	font-size: 19px;
+	color: #657b8b;
+}
+
+.vibe-browser-menu-wrap {
+	position: relative;
+	flex: 0 0 auto;
+}
+
+.vibe-browser-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	right: 0;
+	z-index: 15;
+	display: flex;
+	flex-direction: column;
+	min-width: 190px;
+	padding: 5px;
+	border: 1px solid #abb8c2;
+	border-radius: 3px;
+	background: #f8fafc;
+	box-shadow: 0 4px 11px rgb(20 45 70 / 24%);
+}
+
+.vibe-browser-menu[hidden] {
+	display: none;
+}
+
+.vibe-browser-menu button {
+	padding: 6px 9px;
+	border: 0;
+	border-radius: 2px;
+	background: transparent;
+	color: #32475a;
+	font: 12px 'Open Sans', Arial, sans-serif;
+	text-align: left;
+}
+
+.vibe-browser-menu button:hover:not(:disabled) {
+	background: #cce2f4;
+}
+
+.vibe-browser-menu-status {
+	max-width: 240px;
+	padding: 6px 9px 4px;
+	border-top: 1px solid #d0d9e0;
+	font-size: 11px;
+	color: #516c81;
+	overflow-wrap: anywhere;
+}
+
+.vibe-browser-menu-status[hidden] {
+	display: none;
+}
+
+.vibe-browser-bookmarks {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	flex: 0 0 26px;
+	min-width: 0;
+	padding: 1px 8px 2px 6px;
+	border-bottom: 1px solid #c5cfd8;
+	background: var(--browser-toolbar-surface);
+	background-size: 100% 65px;
+	background-position: 0 -39px;
+	overflow-x: auto;
+	overflow-y: hidden;
+	scrollbar-width: none;
+}
+
+#vibeos-root .vibe-browser-bookmarks::-webkit-scrollbar {
+	display: none;
+	width: 0;
+	height: 0;
+}
+
+.vibe-browser-bookmarks[hidden] {
+	display: none;
+}
+
+.vibe-browser-toolbar:has(+ .vibe-browser-bookmarks[hidden]) {
+	border-bottom: 1px solid #c5cfd8;
+}
+
+.vibe-browser-bookmarks button {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	flex: 0 0 auto;
+	max-width: 175px;
+	height: 22px;
+	padding: 1px 7px;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	background: none;
+	color: #34485c;
+	font: 11px 'Open Sans', Arial, sans-serif;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: background-color 140ms ease, border-color 140ms ease, opacity 140ms ease;
+}
+
+.vibe-browser-bookmarks button:hover {
+	border-color: #d1dce5;
+	background: #e1ecf5;
+}
+
+.vibe-browser-bookmarks .vibe-browser-bookmark {
+	cursor: grab;
+}
+
+.vibe-browser-bookmarks .vibe-browser-dragging-bookmark {
+	opacity: .55;
+	cursor: grabbing;
+}
+
+.vibe-browser-bookmarks .vibe-browser-bookmark-over {
+	border-left-color: #4e97d3;
+	box-shadow: inset 2px 0 #4e97d3;
+	background: #dcebf7;
+}
+
+.vibe-browser-bookmarks img {
+	flex: 0 0 14px;
+	width: 14px;
+	height: 14px;
+	object-fit: contain;
+}
+
+.vibe-browser-bookmarks span {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.vibe-browser-display {
+	position: relative;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+	background: #fff;
+}
+
+.vibe-browser-panel {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	background: #fff;
+}
+
+.vibe-browser-panel[hidden] {
+	display: none;
+}
+
+.vibe-browser-frame {
+	display: block;
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	border: 0;
+	background: #fff;
+}
+
+.vibe-browser-frame[hidden] {
+	display: none;
+}
+
+.vibe-browser-home {
+	position: absolute;
+	inset: 0;
+	overflow-y: auto;
+	background: linear-gradient(#fff 0%, #fff 68%, #f8fafc 100%);
+}
+
+.vibe-browser-home[hidden] {
+	display: none;
+}
+
+.vibe-browser-newtab-page {
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	width: 100%;
+	max-width: 1080px;
+	min-height: 100%;
+	margin: 0 auto;
+	padding: 26px 38px 16px;
+	box-sizing: border-box;
+}
+
+.vibe-browser-apps-header {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 16px;
+	flex: 0 0 auto;
+	min-height: 69px;
+	padding: 11px 9px 16px;
+	border-bottom: 1px solid #e4e8ec;
+}
+
+.vibe-browser-apps-header h1 {
+	margin: 0;
+	font: 400 22px/1.25 Arial, sans-serif;
+	color: #5c6773;
+}
+
+.vibe-browser-apps-header p {
+	margin: 0;
+	font: 12px/1.4 'Open Sans', Arial, sans-serif;
+	color: #8995a0;
+}
+
+.vibe-browser-apps-footer {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 8px;
+	flex: 0 0 auto;
+	min-height: 36px;
+	margin-top: auto;
+	padding: 12px 0 2px;
+	border-top: 1px solid #edf0f2;
+	font: 11px Arial, sans-serif;
+	color: #949ca4;
+}
+
+.vibe-browser-apps-page-dot {
+	position: absolute;
+	top: -2px;
+	left: calc(50% - 26px);
+	width: 52px;
+	height: 3px;
+	background: #b2bec8;
+	box-shadow: inset 0 1px #e7edf2;
+}
+
+.vibe-browser-app-grid {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(118px, 1fr));
+	justify-items: center;
+	align-content: start;
+	gap: 19px 12px;
+	min-height: 190px;
+	width: 100%;
+	margin: 0;
+	padding: 24px 4px 35px;
+}
+
+.vibe-browser-app-tile {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 11px;
+	width: 112px;
+	min-height: 116px;
+	min-width: 0;
+	padding: 12px 7px 9px;
+	border: 1px solid transparent;
+	border-radius: 4px;
+	background: transparent;
+	color: #454e58;
+	font: 12px Arial, sans-serif;
+	cursor: pointer;
+	transition: background-color 130ms ease, border-color 130ms ease, box-shadow 130ms ease;
+}
+
+.vibe-browser-app-tile:hover,
+.vibe-browser-app-tile:focus-visible {
+	border-color: #e1e8ef;
+	background: #f0f5fa;
+	box-shadow: 0 1px 2px rgb(35 72 105 / 9%);
+}
+
+.vibe-browser-app-tile img {
+	flex: 0 0 64px;
+	width: 64px;
+	height: 64px;
+	object-fit: contain;
+	filter: drop-shadow(0 1px 1px rgb(30 45 60 / 12%));
+}
+
+.vibe-browser-app-tile span {
+	max-width: 100%;
+	line-height: 1.3;
+	text-align: center;
+	white-space: normal;
+	word-break: break-word;
+	display: -webkit-box;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+}
+
+.vibe-browser-app-empty {
+	grid-column: 1 / -1;
+	font-size: 13px;
+	color: #88929c;
+	justify-self: start;
+}
+
+.vibe-browser-message {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	z-index: 3;
+	padding: 14px 16px;
+	background: linear-gradient(#fff, #f3f8fb);
+	border-bottom: 1px solid #d2e3f0;
+	font-size: 12px;
+	color: #536577;
+	pointer-events: none;
+	overflow-wrap: anywhere;
+}
+
+.vibe-browser-message[hidden] {
+	display: none;
+}
+
+@media (max-width: 540px) {
+	.vibe-browser-tabstrip {
+		padding-left: 4px;
+		padding-right: 3px;
+	}
+
+	.vibe-browser-toolbar {
+		gap: 2px;
+		padding-left: 2px;
+		padding-right: 2px;
+	}
+
+	.vibe-browser-nav {
+		width: 23px;
+	}
+
+	.vibe-browser-newtab-page {
+		padding: 14px 12px 12px;
+	}
+
+	.vibe-browser-apps-header {
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 5px;
+		min-height: 0;
+		padding: 12px 5px 15px;
+	}
+
+	.vibe-browser-apps-header h1 {
+		font-size: 19px;
+	}
+
+	.vibe-browser-app-grid {
+		grid-template-columns: repeat(auto-fill, minmax(91px, 1fr));
+		gap: 10px 6px;
+		padding: 14px 0 24px;
+	}
+
+	.vibe-browser-app-tile {
+		width: 97px;
+		min-height: 103px;
+		padding: 8px 5px;
+	}
+
+	.vibe-browser-app-tile img {
+		flex-basis: 54px;
+		width: 54px;
+		height: 54px;
+	}
+
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.vibe-browser-tablist.chrome-tabs .chrome-tab,
+	.vibe-browser-tablist.chrome-tabs .chrome-tab-background,
+	.vibe-browser-new-tab,
+	.vibe-browser-bookmarks button {
+		transition-duration: 0.01ms !important;
+		animation-duration: 0.01ms !important;
+	}
+	.vibe-browser-tablist.chrome-tabs .chrome-tab.is-loading .chrome-tab-favicon {
+		animation: none;
+	}
+}

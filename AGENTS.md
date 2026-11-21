@@ -26,54 +26,34 @@ STYLE.md before changing anything. When a rule here conflicts with a tool defaul
 
 ## How the project is built
 
-- There is no build step, bundler, package manager, or framework. `index.html` loads plain
-  scripts in order, and every file shares the global scope. New scripts are added as a
-  `<script>` tag in `index.html`, after the files they depend on and before `appMan.js` and
-  `wallpaper.js`, which must stay last.
-- Everything visible is painted on one 2D canvas (`mctx`) by a render loop in `scripts/main.js`.
-  The canvas fills the browser window at whatever size it is: `msize.w` and `msize.h` hold the
-  current desktop size and change when the browser window is resized (`fitScreen`), so read them
-  every frame and never assume a resolution. Mouse events arrive on the `#overlay` div and are
-  resolved to `interactable` objects by position and index. There is no DOM UI apart from
-  webview iframes.
-- A desktop app is a function named `init<Thing>` that creates a `cwindow` and draws its
-  contents in the window's render callback. Apps are registered in `startEntries` in
-  `scripts/appMan.js`. Shared widgets (`cwindow`, `interactable`, `inputbar`, `button`,
-  `windowOptions`) live in `scripts/main.js` and `scripts/constructors.js`.
-- HTML or third-party web apps run in an iframe through `initWebView` and live under
+- Astro builds a static single-page app. Install with `npm install`, develop with `npm run dev`,
+  validate with `npm run check`, and produce a Cloudflare Pages build using `npm run build`
+  (output directory: `dist/`). `src/pages/index.astro` is the single HTML application entry.
+- The active desktop is native HTML and CSS in `src/dom/`, built as a typed ES module by Astro.
+  `tsconfig.dom.json` runs strict TypeScript checking. `src/dom/desktop.ts` owns the window
+  manager, menu, wallpaper, clock and sizing; `src/dom/apps.ts` implements desktop apps;
+  `src/dom/browser.ts` and `src/dom/emulator.ts` integrate the vendored proxy and v86.
+  The CSS lives beside these source files.
+- `src/desktop/*.ts` and `tsconfig.desktop.json` contain a compatibility copy of the
+  historical canvas desktop for reference. These files are no longer the production entry.
+  The detached `.worktrees/original` also holds the untouched JavaScript original.
+- The three vendored browser transport and emulator libraries load in `src/pages/index.astro`
+  before the native desktop module. Keep them available at their historic static URLs.
+- `public/` exposes historic static URL paths using symlinks to `tango/`, `appfiles/`,
+  `scripts/net/`, `scripts/stomp/`, and `scripts/v86/`. Astro copies them into `dist/`.
+  Keep references root-relative so they also work on nested SPA routes.
+- The desktop uses actual DOM elements for the panel, applications menu, windows, app content,
+  controls, selections and input. Do not introduce a canvas desktop or a second parallel shell.
+  Use the native `DesktopAPI` in `src/dom/types.ts` to open apps and windows.
+- Keep window dimensions, taskbar, title bars, menus, fonts, wallpaper scaling, interactions and
+  content close to the original. Check the original visually and functionally before redesigning
+  controls, and avoid new features that displace existing controls.
+- HTML or third-party web apps run in an iframe through `DesktopAPI.openWebApp` and live under
   `appfiles/`. Keep their upstream code as is apart from the smallest fix needed; vibeOS
   specific tweaks go in a clearly commented block.
-- An iframe sits above the canvas and takes the mouse, so `webview.place()` only shows the real
-  one while its window has the focus. The rest of the time the page is drawn on the canvas from
-  a picture of its DOM (`scripts/snapshot.js`, an SVG `<foreignObject>` rendered by the browser
-  itself). That needs the page to be same origin, which pages behind the web proxy are.
-- Windows must fit the desktop: the taskbar is 26px, a title bar is 30px, so content is at most
-  about `msize.h - 66` pixels tall (654px on a 720px high window). `cwindow` shrinks anything
-  larger to the desktop and keeps the title bar on screen, but a shrunk window cuts its content
-  off, so size windows to fit or scroll them.
-- Each `cwindow` owns a band of 1000 interactable indices starting at `contentBox.index`. Give a
-  widget inside a window the index `contentBox.index + n` and the window manager does the rest:
-  the widget follows the window when it is raised, only reacts inside the window frame, and is
-  deleted when the window closes. Never use absolute indices inside a window. Shell elements
-  (taskbar, menus) use `shellIndex + n`.
-- Content taller than its window goes through `window.scrollView(top, bottom, contentHeight,
-  draw)` in the render callback, which clips, follows the wheel and draws the scrollbar.
-  `scripts/transcript.js` is the smallest example.
-- Windows can be resized by their left, right and bottom edges. A window whose app sets its
-  width or height every frame, or whose layout is fixed, sets `window.resizable = false`.
-  `minWidth` and `minHeight` bound the drag.
-- The render loop runs on `requestAnimationFrame`. Do not add `setInterval` timers for anything
-  that is drawn: read the clock in the render callback instead (see the caret in `inputbar` and
-  the taskbar clock).
-- Keys and the clipboard go to the interactable that has the focus (`cursor.focus`), which takes
-  part by defining `keydown(e)`, `copy()`, `cut()`, `paste(text)` or `selectAll()`. Text drawn on
-  the canvas becomes selectable through the `selection` helper in `scripts/selection.js`.
-- Rich text is written as markdown and drawn by the `markdown` widget in `scripts/markdown.js`
-  (`initMarkdownViewer` is the ready made window). Web links open in vibeBrowser.
-- Multi-line text input is the `editor` widget in `scripts/editor.js` (caret, selection, undo,
-  clipboard, a plain mode and a rich mode that formats markdown in place). The Text Editor in
-  `scripts/textEditor.js` is the app around it, and shows how a window asks before closing with
-  unsaved work (`window.beforeClose`).
+- Windows must fit inside the desktop, including on small viewports. The taskbar is 26px and
+  the title bar is 30px. Preserve keyboard input, browser clipboard behavior, selection, resize,
+  focus, scroll and unsaved editor close confirmation.
 
 ## Vendored code
 
@@ -84,15 +64,14 @@ STYLE.md before changing anything. When a rule here conflicts with a tool defaul
   npm package `@sysce/stomp` (built from https://github.com/Fracital/powerMouse; `SOURCE`
   names the package version and the commit it was built from), and
   `scripts/stomp/epoxy/` the patched epoxy transport it uses (AGPL-3.0, `UPSTREAM` lists the
-  revisions and patches). Same rule: replace, never edit. `scripts/stomp.js` is the wrapper;
-  the browser (`scripts/web.js`) and proxied webviews load pages through it, tunnelled over the
-  relay from `scripts/relay.js`. It runs in Stomp's same-origin mode, which is not a security
+  revisions and patches). Same rule: replace, never edit. `src/dom/browser.ts` integrates
+  Stomp, using the public wisp relay; proxied webviews must also use the transport.
+  Stomp's same-origin mode is not a security
   boundary between a proxied page and the desktop.
-- Larger systems are not vendored. They stream from `i.copy.sh` through the wisp relay in
-  `scripts/relay.js`, because copy.sh sends no CORS headers. The relay URL is the maintainer's
-  public instance and is configured only in that file.
+- Larger systems are not vendored. They stream from `i.copy.sh` through the wisp relay
+  because copy.sh sends no CORS headers. `src/dom/emulator.ts` owns the relay configuration.
 - Guest networking in the emulator uses the same relay as a wisp network backend
-  (`network_relay_url` in `scripts/v86.js`, derived from `relay.url`). The emulator connects to
+  (`network_relay_url` in `src/dom/emulator.ts`). The emulator connects to
   destination IP addresses, not hostnames, so the relay must run with `allow_direct_ip`
   enabled or every outbound connection is closed with wisp reason 0x48.
 - Keep the repository deployable on Cloudflare Pages: no single file over 25 MiB and well
@@ -100,11 +79,13 @@ STYLE.md before changing anything. When a rule here conflicts with a tool defaul
 
 ## Testing
 
-- Serve the repo over HTTP (`python3 -m http.server`) and open `index.html` in a browser.
-  Opening it as a local file works for the desktop and the web games, but the emulator needs
-  HTTP for its wasm and disk images, and the browser needs https or localhost for its service
-  worker.
-- After changing anything in `scripts/`, open at least one window, one game and the emulator
-  and check the browser console. There is no automated test suite; say in your report what you
-  ran and what you saw.
-- Do not add dependencies, build tooling, or test frameworks without asking first.
+- Run `npm run build` to compile the desktop, build the Astro site and compare static assets
+  by SHA-256. Use `npm run dev` to serve the desktop. The emulator and proxy require an HTTP
+  server; the proxy service worker requires a secure context (localhost or HTTPS).
+- For side-by-side parity, the old app lives in `.worktrees/original` at commit `81fde71`.
+  Serve the original on port 4322 and the Astro app on port 4321, then run
+  `node tooling/parity-browser.mjs` to compare the desktop and open representative apps.
+  The comparison script recognizes the legacy canvas and native DOM implementations.
+- After changing anything in `src/dom/`, open at least one window, one game and the
+  emulator and check the browser console. Validate a narrow and a wide viewport.
+- Do not add further dependencies, build tooling, or test frameworks without asking first.

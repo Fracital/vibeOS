@@ -1,0 +1,26 @@
+---
+// The desktop is native HTML and CSS. Astro builds the typed window manager as an ES module.
+---
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta name="theme-color" content="#1c1c1c" />
+		<base href="/" />
+		<title>vibeOS</title>
+		<link rel="icon" type="image/png" href="/favicon.png" />
+	</head>
+	<body>
+		<div id="vibeos-root" aria-label="vibeOS desktop"></div>
+		<noscript>vibeOS needs JavaScript to run the desktop.</noscript>
+		<!-- Keep the original vendored browser transports and x86 emulator available for apps. -->
+		<script is:inline src="/scripts/net/libcurl.js"></script>
+		<script is:inline src="/scripts/stomp/Controller.js"></script>
+		<script is:inline src="/scripts/v86/libv86.js"></script>
+		<script>
+			import { bootDesktop } from '../dom/desktop';
+			bootDesktop();
+		</script>
+	</body>
+</html>

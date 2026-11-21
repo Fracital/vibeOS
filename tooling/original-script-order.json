@@ -1,0 +1,28 @@
+{
+	"scripts": [
+		"main.js",
+		"constructors.js",
+		"selection.js",
+		"snapshot.js",
+		"downscale.js",
+		"net/libcurl.js",
+		"relay.js",
+		"stomp/Controller.js",
+		"stomp.js",
+		"v86/libv86.js",
+		"v86.js",
+		"web.js",
+		"markdown.js",
+		"jsTerm.js",
+		"vibeOS-config.js",
+		"wallpaperPicker.js",
+		"transcript.js",
+		"ct.js",
+		"linuxterm.js",
+		"editor.js",
+		"textEditor.js",
+		"jst_standardutils.js",
+		"appMan.js",
+		"wallpaper.js"
+	]
+}

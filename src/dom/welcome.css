@@ -1,0 +1,222 @@
+.vo-welcome-window {
+	background: #d4d6db;
+	overflow: hidden;
+}
+
+.vo-welcome {
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+	height: 100%;
+	background: #f7f7f7;
+	color: #242424;
+	font: 12px Tahoma, Arial, sans-serif;
+	user-select: text;
+}
+
+.vo-welcome-masthead {
+	display: flex;
+	align-items: center;
+	gap: 13px;
+	min-height: 76px;
+	padding: 11px 21px;
+	border-bottom: 4px solid #0b2e81;
+	background: linear-gradient(#fff, #eef1f9);
+}
+
+.vo-welcome-emblem {
+	display: grid;
+	grid-template-columns: repeat(2, 19px);
+	grid-template-rows: repeat(2, 19px);
+	gap: 3px;
+	transform: skewY(-7deg);
+	flex-shrink: 0;
+}
+
+.vo-welcome-emblem i {
+	display: block;
+	border: 1px solid rgb(0 0 0 / 24%);
+	box-shadow: inset 2px 2px 0 rgb(255 255 255 / 45%);
+}
+
+.vo-welcome-tile-blue { background: #2e59b9; }
+.vo-welcome-tile-orange { background: #ee9727; }
+.vo-welcome-tile-green { background: #209a65; }
+.vo-welcome-tile-cyan { background: #19a3d8; }
+
+.vo-welcome-brand {
+	display: flex;
+	align-items: baseline;
+	flex-wrap: wrap;
+	gap: 8px;
+}
+
+.vo-welcome-brand strong {
+	color: #0a1b49;
+	font: bold 30px Arial, sans-serif;
+	letter-spacing: -1.6px;
+}
+
+.vo-welcome-brand span {
+	color: #315689;
+	font-size: 12px;
+	font-weight: bold;
+}
+
+.vo-welcome-body {
+	display: flex;
+	flex: 1 1 auto;
+	min-height: 0;
+}
+
+.vo-welcome-nav {
+	display: flex;
+	flex: 0 0 158px;
+	flex-direction: column;
+	gap: 1px;
+	padding: 17px 7px;
+	border-right: 1px solid #c2c9d2;
+	background: repeating-linear-gradient(0deg, #e7ebf0 0, #e7ebf0 2px, #eef1f5 2px, #eef1f5 4px);
+}
+
+.vo-welcome-nav-item {
+	min-height: 33px;
+	padding: 5px 8px;
+	border: 1px solid transparent;
+	background: transparent;
+	color: #213c6f;
+	font: bold 12px Tahoma, Arial, sans-serif;
+	text-align: left;
+}
+
+.vo-welcome-nav-item:hover, .vo-welcome-nav-item.vo-welcome-selected {
+	border-color: #b4c5df;
+	background: #d6e2f6;
+	color: #061d5c;
+}
+
+.vo-welcome-panel {
+	flex: 1;
+	min-width: 0;
+	padding: 15px 20px;
+	overflow-y: auto;
+	background: #fff;
+}
+
+.vo-welcome-panel h2 {
+	margin: 2px 0 11px;
+	color: #2c8494;
+	font: 22px Tahoma, Arial, sans-serif;
+}
+
+.vo-welcome-panel p {
+	margin: 0 0 13px;
+	line-height: 1.45;
+}
+
+.vo-welcome-tip {
+	color: #555;
+}
+
+.vo-welcome-link {
+	padding: 5px 11px;
+	border: 1px solid #7c93b3;
+	background: #e8f0fc;
+	color: #183c75;
+	font-size: 12px;
+}
+
+.vo-welcome-footer {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	min-height: 45px;
+	padding: 7px 12px;
+	border-top: 1px solid #abb7c5;
+	background: #e1e5ea;
+}
+
+.vo-welcome-startup {
+	display: inline-flex;
+	align-items: center;
+	gap: 5px;
+	cursor: pointer;
+}
+
+.vo-welcome-startup input {
+	margin: 0;
+}
+
+.vo-welcome-actions {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+}
+
+.vo-welcome-button {
+	min-height: 26px;
+	padding: 3px 10px;
+	border: 1px solid #7e858d;
+	border-radius: 0;
+	background: linear-gradient(#fff, #d9dce0);
+	color: #202020;
+	font: 12px Tahoma, Arial, sans-serif;
+	white-space: nowrap;
+}
+
+.vo-welcome-button:hover {
+	background: linear-gradient(#fff, #e7edf9);
+}
+
+.vo-welcome-primary {
+	border-color: #284e8d;
+}
+
+.vo-app-welcome-setting {
+	margin-top: 13px;
+	padding-top: 11px;
+	border-top: 1px solid #929292;
+	font-size: 13px;
+}
+
+.vo-app-welcome-toggle {
+	display: flex;
+	align-items: center;
+	gap: 7px;
+	margin-bottom: 8px;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.vo-app-welcome-toggle input {
+	margin: 0;
+}
+
+@media (max-width: 490px) {
+	.vo-welcome-masthead {
+		min-height: 60px;
+		padding: 7px 11px;
+	}
+	.vo-welcome-brand strong {
+		font-size: 23px;
+	}
+	.vo-welcome-nav {
+		flex-basis: 119px;
+		padding: 8px 3px;
+	}
+	.vo-welcome-nav-item {
+		font-size: 11px;
+		padding: 4px;
+	}
+	.vo-welcome-panel {
+		padding: 9px;
+	}
+	.vo-welcome-panel h2 {
+		font-size: 18px;
+	}
+	.vo-welcome-footer {
+		align-items: flex-start;
+		flex-wrap: wrap;
+	}
+}

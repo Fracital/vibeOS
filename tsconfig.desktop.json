@@ -1,0 +1,35 @@
+{
+	"compilerOptions": {
+		"target": "ES2020",
+		"module": "none",
+		"lib": ["ES2020", "DOM"],
+		"noCheck": true,
+		"outFile": "public/vibeos.js",
+		"sourceMap": true,
+		"inlineSources": true,
+		"skipLibCheck": true
+	},
+	"files": [
+		"src/desktop/main.ts",
+		"src/desktop/constructors.ts",
+		"src/desktop/selection.ts",
+		"src/desktop/snapshot.ts",
+		"src/desktop/downscale.ts",
+		"src/desktop/relay.ts",
+		"src/desktop/stomp.ts",
+		"src/desktop/v86.ts",
+		"src/desktop/web.ts",
+		"src/desktop/markdown.ts",
+		"src/desktop/jsTerm.ts",
+		"src/desktop/vibeOS-config.ts",
+		"src/desktop/wallpaperPicker.ts",
+		"src/desktop/transcript.ts",
+		"src/desktop/ct.ts",
+		"src/desktop/linuxterm.ts",
+		"src/desktop/editor.ts",
+		"src/desktop/textEditor.ts",
+		"src/desktop/jst_standardutils.ts",
+		"src/desktop/appMan.ts",
+		"src/desktop/wallpaper.ts"
+	]
+}

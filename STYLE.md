@@ -1,6 +1,7 @@
 # vibeOS code style
 
-These rules are strict for code written by the vibeOS team under `scripts/` and `index.html`.
+These rules are strict for first-party desktop code under `src/dom/` and the Astro
+application entry `src/pages/index.astro`.
 Vendored and ported code (`appfiles/`, `scripts/v86/`, `scripts/net/`, `tango/`) keeps its
 upstream formatting and is never reformatted. See `.editorconfig` for the editor settings and
 `.prettierrc` for the formatter; `.prettierignore` keeps Prettier off the vendored directories.
@@ -13,8 +14,9 @@ the files you touched, not on the whole tree, because older files were written b
 - UTF-8, LF line endings, one newline at end of file, no trailing whitespace.
 - Single quotes for strings. Template literals only when interpolating.
 - One statement per line, terminated with a semicolon.
-- Plain ES2017 that runs in a browser without a build step. No modules, no `import`, no
-  TypeScript, no JSX.
+- Typed ES2022 TypeScript modules, compiled by Astro. Use explicit interfaces for shared APIs
+  and strict TypeScript checking. Do not introduce new globals or canvas-based UI.
+- Astro owns the HTML entry, and `tooling/` owns the build and comparison scripts.
 - No em dashes or en dashes anywhere, including comments.
 
 ## Naming
@@ -24,12 +26,12 @@ the files you touched, not on the whole tree, because older files were written b
 - Widget classes are lowercase single words, matching the existing ones: `cwindow`,
   `interactable`, `inputbar`, `button`, `cswitch`, `cradio`, `windowOptions`.
 - Interactable ids are `<owner>_<part>` (`vm-linux_titlebar`, `webview_<timestamp>`).
-- Files are `camelCase.js` or `lowercase.js`, one feature per file.
+- Files are `camelCase.ts` or `lowercase.ts`, one feature per file.
 
 ## Declarations
 
-- Declare with `var` in one comma-chained block at the top of the scope, one name per line,
-  the continuation lines indented one tab:
+- The preserved legacy desktop in `src/desktop/` uses `var` declarations. When reading it,
+  expect comma-chained blocks with continuation lines indented one tab:
 
   ```js
   var vmWindow = null,
@@ -39,7 +41,7 @@ the files you touched, not on the whole tree, because older files were written b
 
 - `let` and `const` are fine inside functions written new, but do not mix styles within one
   file.
-- Never leak accidental globals. Every name is declared.
+- Prefer `const` for new native modules and `let` for changing state. Avoid leaking globals.
 
 ## Functions and control flow
 
@@ -63,16 +65,16 @@ the files you touched, not on the whole tree, because older files were written b
 
 ## Rendering code
 
-- All drawing goes through `mctx` inside a render callback. Restore any state you change
-  (`textAlign`, `textBaseline`, `shadowBlur`) before returning.
-- Positions are computed from the window (`window.x`, `window.contentBox.y`) every frame.
-  Nothing is cached across frames except images and measured sizes.
+- Render the desktop and its applications using semantic HTML elements and CSS. Reuse the
+  `DesktopAPI` interfaces in `src/dom/types.ts` for windows, browser and emulator actions.
+- Compute bounds from the viewport and window geometry. Preserve focus, resizing, stacking,
+  selection and the original dimensions where possible.
 - Fonts are the loaded Google fonts only: `Open Sans` for UI text, `Inconsolata` or
   `Roboto Mono` for monospace.
 
 ## HTML and CSS
 
-- `index.html` holds the only stylesheet for the desktop. Keep it there, tabs, one property
-  per line.
+- `src/pages/index.astro` holds the application entry. Keep CSS in `src/dom/*.css`, use tabs,
+  one property per line, and preserve the layered window manager.
 - Changes to a ported app's HTML are limited to a single `<style>` or `<script>` block marked
   with a `vibeOS:` comment so upstream updates stay easy.

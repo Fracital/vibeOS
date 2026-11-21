@@ -1,0 +1,186 @@
+.vo-app-catalog {
+	padding: 18px 20px 22px;
+	background: #d0d0d0;
+}
+
+.vo-app-catalog-header h2 {
+	margin: 0 0 6px;
+	font-size: 22px;
+	font-weight: 600;
+}
+
+.vo-app-catalog-header p {
+	margin: 0 0 15px;
+	color: #3a3a3a;
+	font-size: 13px;
+	line-height: 1.5;
+}
+
+.vo-app-catalog-install {
+	display: flex;
+	align-items: flex-end;
+	flex-wrap: wrap;
+	gap: 8px;
+	padding: 12px;
+	border: 1px solid #a2a2a2;
+	border-radius: 5px;
+	background: #e8e8e8;
+}
+
+.vo-app-catalog-field {
+	display: flex;
+	flex: 1 1 180px;
+	flex-direction: column;
+	gap: 5px;
+	min-width: 130px;
+	color: #222;
+	font-size: 13px;
+}
+
+.vo-app-catalog-field .vo-app-input {
+	flex: none;
+	width: 100%;
+}
+
+.vo-app-catalog-kind {
+	flex: 0 1 140px;
+}
+
+.vo-app-catalog-kind select {
+	width: 100%;
+	height: 29px;
+	padding: 3px 5px;
+	border: 1px solid #888;
+	background: white;
+}
+
+.vo-app-catalog-install > .vo-app-button {
+	height: 29px;
+	white-space: nowrap;
+}
+
+.vo-app-catalog-install > .vo-app-button:disabled {
+	cursor: progress;
+	opacity: .55;
+}
+
+.vo-app-catalog-status {
+	min-height: 22px;
+	margin: 9px 0;
+	font-size: 13px;
+	line-height: 20px;
+}
+
+.vo-app-catalog-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.vo-app-catalog-empty {
+	padding: 18px;
+	border: 1px solid #aaa;
+	border-radius: 4px;
+	background: #e8e8e8;
+	color: #444;
+	line-height: 1.5;
+}
+
+.vo-app-catalog-card {
+	display: grid;
+	grid-template-columns: 46px minmax(0, 1fr) auto;
+	align-items: start;
+	gap: 12px;
+	padding: 12px;
+	border: 1px solid #a6a6a6;
+	border-radius: 5px;
+	background: #f6f6f6;
+}
+
+.vo-app-catalog-icon {
+	width: 44px;
+	height: 44px;
+	object-fit: contain;
+}
+
+.vo-app-catalog-details {
+	min-width: 0;
+	overflow-wrap: anywhere;
+}
+
+.vo-app-catalog-details h3 {
+	display: inline;
+	margin: 0 7px 0 0;
+	font-size: 15px;
+	font-weight: 600;
+}
+
+.vo-app-catalog-type {
+	display: inline-block;
+	padding: 1px 6px;
+	border: 1px solid #aaa;
+	border-radius: 3px;
+	background: #e5e5e5;
+	color: #333;
+	font-size: 11px;
+	white-space: nowrap;
+}
+
+.vo-app-catalog-url {
+	max-width: 100%;
+	margin-top: 5px;
+	overflow: hidden;
+	color: #555;
+	font-size: 12px;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.vo-app-catalog-details p {
+	margin: 7px 0 0;
+	color: #353535;
+	font-size: 13px;
+	line-height: 1.45;
+}
+
+.vo-app-catalog-details p.vo-app-catalog-manifest {
+	color: #777;
+	font-size: 11px;
+}
+
+.vo-app-catalog-actions {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.vo-app-catalog-remove {
+	border-color: #777;
+	background: linear-gradient(#ececec, #c2c2c2);
+	color: #333;
+}
+
+.vo-app-catalog-remove:hover {
+	background: linear-gradient(#fff, #ddd);
+}
+
+@media (max-width: 590px) {
+	.vo-app-catalog {
+		padding: 10px;
+	}
+
+	.vo-app-catalog-card {
+		grid-template-columns: 38px minmax(0, 1fr);
+		gap: 8px;
+	}
+
+	.vo-app-catalog-icon {
+		width: 34px;
+		height: 34px;
+	}
+
+	.vo-app-catalog-actions {
+		grid-column: 2;
+		flex-direction: row;
+	}
+}
