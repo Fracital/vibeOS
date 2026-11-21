@@ -29,7 +29,8 @@ export interface InstalledSite extends SiteInfo {
 
 const siteCacheKey = 'vibeos.sites.v1';
 const installsKey = 'vibeos.installed-apps.v1';
-const tangoFallback = assetUrl('/tango/mimetypes/16/html.png');
+// (a function: the host names its files only once it boots the desktop, after this module loaded)
+const tangoFallback = (): string => assetUrl('/tango/mimetypes/16/html.png');
 const cacheAge = 7 * 24 * 3600 * 1000;
 const maxApps = 80;
 const memoryStorage = new Map<string, string>();
@@ -119,7 +120,7 @@ const pageInfo = (url: string, doc: Document): SiteInfo => {
 	const description = textContent(doc, 'meta[property="og:description"]', 'meta[name="description"]', 'meta[name="twitter:description"]');
 	const icon = linkValue(doc, 'apple-touch-icon', url) || linkValue(doc, 'icon', url) ||
 		safeResource(doc.querySelector('meta[property="og:image"]')?.getAttribute('content'), url) ||
-		tangoFallback;
+		tangoFallback();
 	const manifestUrl = linkValue(doc, 'manifest', url);
 	return {url, title: trim(title, 120), description: trim(description, 280), icon, ...(manifestUrl ? {manifestUrl} : {})};
 };
@@ -140,7 +141,7 @@ const cleanSiteInfo = (input: SiteInfo): SiteInfo | null => {
 			url,
 			title: trim(input.title, 120) || host,
 			description: trim(input.description, 280),
-			icon: input.icon === tangoFallback ? tangoFallback : safeResource(input.icon, url) ?? tangoFallback,
+			icon: input.icon === tangoFallback() ? tangoFallback() : safeResource(input.icon, url) ?? tangoFallback(),
 			...(manifestUrl ? {manifestUrl} : {}),
 			...(startUrl ? {startUrl} : {}),
 		};
@@ -207,7 +208,7 @@ const inspectManifest = async (site: SiteInfo): Promise<SiteInfo> => {
 		const title = trim(manifest.name, 120) || trim(manifest.short_name, 120) || site.title;
 		const description = trim(manifest.description, 280) || site.description;
 		let icon = site.icon;
-		if(icon === tangoFallback && Array.isArray(manifest.icons)){
+		if(icon === tangoFallback() && Array.isArray(manifest.icons)){
 			const icons = manifest.icons.filter((item): item is Record<string, unknown> =>
 				item !== null && typeof item === 'object' && !Array.isArray(item));
 			const ranked = icons.map(item => {
@@ -240,7 +241,7 @@ export async function inspectSite(value: string, doc?: Document | null): Promise
 		} catch { /* Most remote sites do not expose CORS metadata; the STomp frame can. */ }
 	}
 	let site = page ? pageInfo(url, page) : previous?.site ?? {
-		url, title: new URL(url).hostname.replace(/^www\./, ''), description: '', icon: tangoFallback,
+		url, title: new URL(url).hostname.replace(/^www\./, ''), description: '', icon: tangoFallback(),
 	};
 	site = await inspectManifest(site);
 	const cleaned = cleanSiteInfo(site);

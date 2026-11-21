@@ -11,9 +11,9 @@ export interface MouseSettings {
 
 const storageKey = 'vibeos.mouse.settings';
 const themes: Array<{id: MouseTheme; name: string; note: string; preview: string}> = [
-	{id: 'kittydog', name: 'Kittydog Crystal', note: 'Colorful crystal pointer', preview: assetUrl('/cursors/kittydog/left_ptr.png')},
-	{id: 'tango', name: 'Tango Classic', note: 'Original vibeOS cursors', preview: assetUrl('/cursors/tango/pointer.png')},
-	{id: 'system', name: 'System Default', note: 'Use your browser pointer', preview: assetUrl('/tango/devices/32/input-mouse.png')},
+	{id: 'kittydog', name: 'Kittydog Crystal', note: 'Colorful crystal pointer', preview: '/cursors/kittydog/left_ptr.png'},
+	{id: 'tango', name: 'Tango Classic', note: 'Original vibeOS cursors', preview: '/cursors/tango/pointer.png'},
+	{id: 'system', name: 'System Default', note: 'Use your browser pointer', preview: '/tango/devices/32/input-mouse.png'},
 ];
 
 export const readMouseSettings = (): MouseSettings => {
@@ -71,7 +71,7 @@ export function openMouseSettings(api: DesktopAPI): void {
 				input.value = item.id;
 				input.checked = settings.theme === item.id;
 				const preview = create('img', 'vo-mouse-theme-icon');
-				preview.src = item.preview;
+				preview.src = assetUrl(item.preview);
 				preview.alt = `${item.name} mouse pointer`;
 				const name = create('span', 'vo-mouse-theme-label', item.name);
 				name.append(create('small', '', item.note));
@@ -125,7 +125,7 @@ export function openMouseSettings(api: DesktopAPI): void {
 			const updatePreview = () => {
 				for(const input of selected)input.checked = input.value === settings.theme;
 				previewArea.dataset.cursorTheme = settings.theme;
-				previewIcon.src = themes.find((item) => item.id === settings.theme)?.preview ?? themes[0].preview;
+				previewIcon.src = assetUrl(themes.find((item) => item.id === settings.theme)?.preview ?? themes[0].preview);
 			};
 			root.append(heading, cards, create('h2', '', 'Preview'), previewArea, speedRow, note, reset);
 			win.content.append(root);

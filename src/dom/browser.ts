@@ -265,7 +265,8 @@ interface BrowserTab {
 	unbindHost: (() => void) | null;
 }
 
-const browserFallbackIcon = iconUrl('apps/16/internet-web-browser.png');
+// (a function: the host names its files only once it boots the desktop, after this module loaded)
+const browserFallbackIcon = (): string => iconUrl('apps/16/internet-web-browser.png');
 let nextBrowserTabId = 0;
 
 const bookmarkIcon = (bookmark: BrowserBookmark): string => {
@@ -286,16 +287,16 @@ function tabDocument(tab: BrowserTab): Document | null {
 }
 
 function siteIcon(value: unknown, pageUrl: string): string {
-	if (typeof value !== 'string' || !value.trim()) return browserFallbackIcon;
+	if (typeof value !== 'string' || !value.trim()) return browserFallbackIcon();
 	try {
 		if (value.startsWith(assetUrl('/tango/')) || value.startsWith(assetUrl('/stomp-bookmarks/icons/'))) return value;
 		if (value.startsWith('/tango/') || value.startsWith('/stomp-bookmarks/icons/')) return assetUrl(value);
 		if (/^(?:apps|actions|status|mimetypes)\//.test(value)) return iconUrl(value);
 		if (/^data:image\/(?:png|jpeg|gif|webp);base64,/i.test(value)) return value;
 		const parsed = new URL(value, pageUrl);
-		return /^https?:$/.test(parsed.protocol) ? parsed.href : browserFallbackIcon;
+		return /^https?:$/.test(parsed.protocol) ? parsed.href : browserFallbackIcon();
 	} catch {
-		return browserFallbackIcon;
+		return browserFallbackIcon();
 	}
 }
 
@@ -484,7 +485,7 @@ export function launchBrowser(api: DesktopAPI, url?: string, options: LaunchOpti
 				image.alt = '';
 				image.src = icon;
 				image.draggable = false;
-				image.onerror = () => { image.onerror = null; image.src = browserFallbackIcon; };
+				image.onerror = () => { image.onerror = null; image.src = browserFallbackIcon(); };
 				const caption = document.createElement('span');
 				caption.textContent = title;
 				button.append(image, caption);
@@ -623,7 +624,7 @@ export function launchBrowser(api: DesktopAPI, url?: string, options: LaunchOpti
 					}
 					tab.title = (tab.host.title() || current || 'New Tab').slice(0, 160);
 					const icon = tab.host.icon();
-					tab.favicon = icon && /^(?:data|blob):/i.test(icon) ? icon : browserFallbackIcon;
+					tab.favicon = icon && /^(?:data|blob):/i.test(icon) ? icon : browserFallbackIcon();
 					tab.button.classList.toggle('is-loading', tab.host.loading());
 					updateTab(tab);
 					return;
@@ -781,7 +782,7 @@ export function launchBrowser(api: DesktopAPI, url?: string, options: LaunchOpti
 				tab.metadataRequest++;
 				tab.url = target;
 				tab.title = new URL(target).hostname || target;
-				tab.favicon = browserFallbackIcon;
+				tab.favicon = browserFallbackIcon();
 				tab.home.hidden = true;
 				tab.iframe.hidden = false;
 				setNotice(tab, 'Connecting to the web proxy...');
@@ -937,7 +938,7 @@ export function launchBrowser(api: DesktopAPI, url?: string, options: LaunchOpti
 				if (closed) return;
 				const id = ++nextBrowserTabId;
 				// a host's tab arrives as it is, at once: it is already open
-				chromeTabs.addTab({id: String(id), title: 'New Tab', favicon: browserFallbackIcon}, {
+				chromeTabs.addTab({id: String(id), title: 'New Tab', favicon: browserFallbackIcon()}, {
 					animate: !adopted && !reducedMotion.matches, background: true,
 				});
 				const button = chromeTabs.tabEls.at(-1);
@@ -977,7 +978,7 @@ export function launchBrowser(api: DesktopAPI, url?: string, options: LaunchOpti
 					id, button, label, icon, close, panel, iframe, home, notice,
 					frame: null, owner: null, connection: null, frameNavigate: null, frameLoad: null, bridgeLoad: null,
 					innerDocument: null, url: null, title: 'New Tab',
-					favicon: browserFallbackIcon, request: 0, metadataRequest: 0, closed: false,
+					favicon: browserFallbackIcon(), request: 0, metadataRequest: 0, closed: false,
 					host: null, unbindHost: null,
 				};
 				tab.bridgeLoad = () => attachDocument(tab);

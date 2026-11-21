@@ -53,7 +53,16 @@ export interface AppEntry {
 // host serves it from, so the base is known only where the module runs. The site serves them
 // from its root.
 declare const __VIBEOS_EMBED__: boolean | undefined;
-export const assetBase: string = typeof __VIBEOS_EMBED__ !== 'undefined' && __VIBEOS_EMBED__ ? new URL('./', import.meta.url).pathname : '/';
+// (a module the host made from one file of its own, at a blob: URL, has no directory: its host
+// resolves every file, setAssetResolver)
+const moduleBase = (): string => {
+	try {
+		return new URL('./', import.meta.url).pathname;
+	} catch {
+		return '/';
+	}
+};
+export const assetBase: string = typeof __VIBEOS_EMBED__ !== 'undefined' && __VIBEOS_EMBED__ ? moduleBase() : '/';
 
 // The host's names for vibeOS's own pages that a window shows in a frame ('/appfiles/tetris/index.html'
 // to 'a1b2c3d4/'), relative to assetBase: the address the browser keeps for such a frame then
@@ -63,12 +72,21 @@ export const setAssetPages = (pages: Readonly<Record<string, string>> | undefine
 	assetPages = {...pages};
 };
 
+// A host that serves no directory of vibeOS's (a page in one file, with vibeOS's files inside it)
+// names each file's URL itself (BrowserHost.assets): every root-relative path is the host's then,
+// including one it does not carry, so no file is ever asked of a directory that is not there
+let assetResolver: ((path: string) => string) | null = null;
+export const setAssetResolver = (resolve: ((path: string) => string) | undefined): void => {
+	assetResolver = resolve ?? null;
+};
+
 // a root-relative path of vibeOS's own static files ('/tango/...') as the page must request it
 export const assetUrl = (path: string): string =>
-	Object.hasOwn(assetPages, path) ? assetBase + assetPages[path] :
-		path.startsWith('/') && !path.startsWith(assetBase) ? assetBase + path.slice(1) : path;
+	assetResolver && path.startsWith('/') ? assetResolver(path) :
+		Object.hasOwn(assetPages, path) ? assetBase + assetPages[path] :
+			path.startsWith('/') && !path.startsWith(assetBase) ? assetBase + path.slice(1) : path;
 
-export const iconUrl = (name: string): string => /^(https?:\/\/|data:)/i.test(name) ? name : name.startsWith('/') ? assetUrl(name) : `${assetBase}tango/${name}`;
+export const iconUrl = (name: string): string => /^(https?:\/\/|data:|blob:)/i.test(name) ? name : name.startsWith('/') ? assetUrl(name) : assetUrl(`/tango/${name}`);
 
 // a proxied frame as Stomp's controller makes it (createFrame)
 export interface StompFrame extends EventTarget {
@@ -112,6 +130,12 @@ export interface HostTab {
 	watch(callback: () => void): () => void;
 }
 
+export interface HostFetchInit {
+	method?: string;
+	headers?: Record<string, string>;
+	signal?: AbortSignal;
+}
+
 // the page that hosts the desktop (src/dom/embed.ts)
 export interface BrowserHost {
 	controller(): Promise<StompControllerInstance>;
@@ -128,6 +152,16 @@ export interface BrowserHost {
 	mountWebview?(iframe: HTMLIFrameElement, url: string): Promise<() => void>;
 	// the host's names for vibeOS's pages that windows show in frames (setAssetPages)
 	pages?: Readonly<Record<string, string>>;
+	// a host that serves no directory of vibeOS's files names each one's URL: a root-relative
+	// path ('/tango/...', '/appfiles/tetris/index.html') to the URL the page loads it from, and
+	// a URL that loads nothing for a file it does not carry (setAssetResolver)
+	assets?: (path: string) => string;
+	// the network as the host's proxy reaches it. A desktop with it fetches what it does not
+	// carry (the emulator's core, BIOS and disks, src/dom/v86files.ts) through it, so the page
+	// itself never asks another site for anything
+	fetch?: (url: string, init?: HostFetchInit) => Promise<Response>;
+	// the wisp relay the emulator's guest network may use (none: the guest has no network)
+	relay?: string | null;
 	// the panel button that leaves the desktop for the host's own view
 	leaveLabel: string;
 	leave(): void;

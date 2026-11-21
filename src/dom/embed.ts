@@ -5,9 +5,9 @@
 import { bootDesktop } from './desktop';
 import { adoptHostTab, adoptHostWindows, releaseHostTabs, runHostKey } from './browser';
 import type { HostKey, HostWindowState, LaunchOptions } from './browser';
-import type { BrowserHost, DesktopAPI, HostTab } from './types';
+import type { BrowserHost, DesktopAPI, HostFetchInit, HostTab } from './types';
 
-export type { BrowserHost, HostKey, HostTab };
+export type { BrowserHost, HostFetchInit, HostKey, HostTab };
 
 export interface EmbeddedDesktop {
 	readonly root: HTMLElement;

@@ -1,11 +1,11 @@
 import { createApplications, openAppManager } from './apps';
 import { launchBrowser, mountProxiedWebview, setBrowserHost } from './browser';
-import { launchEmulator } from './emulator';
+import { launchEmulator, setEmulatorHost } from './emulator';
 import { openMouseSettings, applyMouseSettings, readMouseSettings } from './mouse';
 import { cachedSiteInfo, inspectSite, installSite } from './catalog';
 import { bootWelcome, openWelcome } from './welcome';
 import type { AppEntry, BrowserHost, DesktopAPI, DesktopWindow, WindowSpec } from './types';
-import { assetUrl, iconUrl, setAssetPages } from './types';
+import { assetUrl, iconUrl, setAssetPages, setAssetResolver } from './types';
 import './desktop.css';
 import './apps.css';
 import './browser.css';
@@ -44,6 +44,8 @@ export function bootDesktop(host?: BrowserHost): DesktopAPI | null {
 	if(host){
 		setBrowserHost(host);
 		setAssetPages(host.pages);
+		setAssetResolver(host.assets);
+		setEmulatorHost(host);
 	}
 
 	const wallpaper = create('div', 'vo-wallpaper');

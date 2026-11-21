@@ -1,9 +1,14 @@
-// v86 virtual machine, using the vendored core, BIOS and images in scripts/v86/.
+// v86 virtual machine, using the vendored core, BIOS and images in scripts/v86/ on the site, and
+// the same files from their pinned sources through the host's proxy when the desktop is embedded
+// (src/dom/v86files.ts).
 import './emulator.css';
-import type { DesktopAPI, DesktopWindow } from './types';
+import type { BrowserHost, DesktopAPI, DesktopWindow } from './types';
 import { assetUrl } from './types';
+import { pinnedFile, v86Core, v86Images } from './v86files';
+import type { HostFetch } from './v86files';
 
-type Disk = { url: string; size: number; async?: boolean; fixed_chunk_size?: number; use_parts?: boolean };
+// a disk is one of the images vibeOS carries (`image`) or streams from a URL
+type Disk = { url?: string; image?: string; buffer?: ArrayBuffer; size: number; async?: boolean; fixed_chunk_size?: number; use_parts?: boolean };
 type Profile = {
 	name: string;
 	category: 'Systems' | 'Online' | 'Games';
@@ -17,14 +22,15 @@ type Profile = {
 };
 
 type V86Options = {
-	wasm_path: string;
-	bios: { url: string };
-	vga_bios: { url: string };
+	wasm_path?: string;
+	wasm_fn?: (imports: WebAssembly.Imports) => Promise<WebAssembly.Exports>;
+	bios: { url: string } | { buffer: ArrayBuffer };
+	vga_bios: { url: string } | { buffer: ArrayBuffer };
 	screen_container: HTMLElement;
 	screen: { use_graphical_text: boolean; scale: number };
 	memory_size: number;
 	vga_memory_size: number;
-	network_relay_url: string;
+	network_relay_url?: string;
 	autostart: boolean;
 } & Partial<Profile>;
 
@@ -51,31 +57,30 @@ type CurlTransport = {
 	fetch(url: string, options?: RequestInit): Promise<Response>;
 };
 
-const v86Base = assetUrl('/scripts/v86/');
-const disk = (name: string): string => `${v86Base}images/${name}`;
+const v86Base = (): string => assetUrl('/scripts/v86/');
 const remote = (name: string): string => `https://i.copy.sh/${name}`;
 const wispEndpoint = 'wss://holywisp.fracit.al/';
 
 const profiles: Record<string, Profile> = {
-	freedos: { name: 'FreeDOS', category: 'Systems', fda: { url: disk('freedos722.img'), size: 737280 } },
-	msdos4: { name: 'MS-DOS 4', category: 'Systems', fda: { url: disk('msdos4.img'), size: 1474560 } },
-	windows1: { name: 'Windows 1.01', category: 'Systems', fda: { url: disk('windows101.img'), size: 1474560 } },
-	kolibri: { name: 'KolibriOS', category: 'Systems', fda: { url: disk('kolibri.img'), size: 1474560 } },
-	linux: { name: 'Linux 2.6', category: 'Systems', cdrom: { url: disk('linux.iso'), size: 5666816 } },
-	linux3: { name: 'Linux 3', category: 'Systems', cdrom: { url: disk('linux3.iso'), size: 8638464 } },
+	freedos: { name: 'FreeDOS', category: 'Systems', fda: { image: 'freedos722.img', size: 737280 } },
+	msdos4: { name: 'MS-DOS 4', category: 'Systems', fda: { image: 'msdos4.img', size: 1474560 } },
+	windows1: { name: 'Windows 1.01', category: 'Systems', fda: { image: 'windows101.img', size: 1474560 } },
+	kolibri: { name: 'KolibriOS', category: 'Systems', fda: { image: 'kolibri.img', size: 1474560 } },
+	linux: { name: 'Linux 2.6', category: 'Systems', cdrom: { image: 'linux.iso', size: 5666816 } },
+	linux3: { name: 'Linux 3', category: 'Systems', cdrom: { image: 'linux3.iso', size: 8638464 } },
 	msdos622: { name: 'MS-DOS 6.22', category: 'Online', streamed: true, hda: { url: remote('msdos622/.img'), size: 67108864, async: true, fixed_chunk_size: 262144, use_parts: true } },
 	windows31: { name: 'Windows 3.1', category: 'Online', streamed: true, hda: { url: remote('win31.img'), size: 34463744, async: false } },
 	windows95: { name: 'Windows 95', category: 'Online', streamed: true, hda: { url: remote('windows95-v3/.img'), size: 471859200, async: true, fixed_chunk_size: 262144, use_parts: true } },
 	windows98: { name: 'Windows 98', category: 'Online', streamed: true, preserve_mac_from_state_image: true, memory_size: 128 * 1024 * 1024, hda: { url: remote('windows98/.img'), size: 314572800, async: true, fixed_chunk_size: 262144, use_parts: true }, initial_state: { url: remote('windows98_state-v2.bin.zst') } },
 	windows2000: { name: 'Windows 2000', category: 'Online', streamed: true, preserve_mac_from_state_image: true, memory_size: 512 * 1024 * 1024, hda: { url: remote('windows2k-v2/.img'), size: 2147483648, async: true, fixed_chunk_size: 262144, use_parts: true }, initial_state: { url: remote('windows2k_state-v4.bin.zst') } },
-	floppybird: { name: 'Floppy Bird', category: 'Games', fda: { url: disk('floppybird.img'), size: 1474560 } },
-	tetros: { name: 'TetrOS', category: 'Games', fda: { url: disk('tetros.img'), size: 512 } },
-	invaders: { name: 'Invaders', category: 'Games', fda: { url: disk('invaders.img'), size: 512 } },
-	pillman: { name: 'Pillman', category: 'Games', fda: { url: disk('pillman.img'), size: 512 } },
-	bootrogue: { name: 'bootRogue', category: 'Games', fda: { url: disk('bootrogue.img'), size: 512 } },
-	dino: { name: 'dino', category: 'Games', fda: { url: disk('bootdino.img'), size: 512 } },
-	bootchess: { name: 'BootChess', category: 'Games', fda: { url: disk('bootchess.img'), size: 1474560 } },
-	doof: { name: 'DOOF', category: 'Games', fda: { url: disk('doof-1440.img'), size: 1474560 } },
+	floppybird: { name: 'Floppy Bird', category: 'Games', fda: { image: 'floppybird.img', size: 1474560 } },
+	tetros: { name: 'TetrOS', category: 'Games', fda: { image: 'tetros.img', size: 512 } },
+	invaders: { name: 'Invaders', category: 'Games', fda: { image: 'invaders.img', size: 512 } },
+	pillman: { name: 'Pillman', category: 'Games', fda: { image: 'pillman.img', size: 512 } },
+	bootrogue: { name: 'bootRogue', category: 'Games', fda: { image: 'bootrogue.img', size: 512 } },
+	dino: { name: 'dino', category: 'Games', fda: { image: 'bootdino.img', size: 512 } },
+	bootchess: { name: 'BootChess', category: 'Games', fda: { image: 'bootchess.img', size: 1474560 } },
+	doof: { name: 'DOOF', category: 'Games', fda: { image: 'doof-1440.img', size: 1474560 } },
 };
 
 let active: { window: DesktopWindow; load(profile: string): void } | null = null;
@@ -83,6 +88,16 @@ let v86ScriptPromise: Promise<void> | null = null;
 let curlScriptPromise: Promise<void> | null = null;
 let curlPromise: Promise<CurlTransport> | null = null;
 let relayInstalled = false;
+
+// the embedding host's network and relay (BrowserHost.fetch, BrowserHost.relay): with them the
+// emulator's files come from their pinned sources and its streamed disks through the host's proxy,
+// and the guest's network uses the host's relay or none
+let hostNetwork: HostFetch | null = null;
+let hostRelay: string | null = null;
+export const setEmulatorHost = (host: BrowserHost): void => {
+	hostNetwork = host.fetch ?? null;
+	hostRelay = host.relay ?? null;
+};
 
 function getV86(): V86Constructor | undefined {
 	return (window as Window & { V86?: V86Constructor }).V86;
@@ -102,9 +117,20 @@ function appendScript(url: string): Promise<void> {
 	});
 }
 
+// the pinned core as a script of this page's own (a blob: URL, so no request leaves the page)
+async function appendPinnedCore(network: HostFetch): Promise<void> {
+	const bytes = await pinnedFile(v86Core.script, network);
+	const url = URL.createObjectURL(new Blob([bytes], { type: 'text/javascript' }));
+	try {
+		await appendScript(url);
+	} finally {
+		URL.revokeObjectURL(url);
+	}
+}
+
 async function ensureV86(): Promise<V86Constructor> {
 	if (!getV86()) {
-		v86ScriptPromise ??= appendScript(`${v86Base}libv86.js`).catch((error: unknown) => {
+		v86ScriptPromise ??= (hostNetwork ? appendPinnedCore(hostNetwork) : appendScript(`${v86Base()}libv86.js`)).catch((error: unknown) => {
 			v86ScriptPromise = null;
 			throw error;
 		});
@@ -114,6 +140,52 @@ async function ensureV86(): Promise<V86Constructor> {
 	if (!constructor) throw new Error('The v86 emulator core is missing');
 	return constructor;
 }
+
+// what fetches a streamed disk: the host's proxy, else libcurl over the public relay
+async function remoteFetch(): Promise<(url: string, init: RequestInit) => Promise<Response>> {
+	const network = hostNetwork;
+	if (network) {
+		return (url, init) => network(url, {
+			method: init.method,
+			headers: init.headers as Record<string, string> | undefined,
+			signal: init.signal ?? undefined,
+		});
+	}
+	const curl = await ensureCurl();
+	return (url, init) => curl.fetch(url, init);
+}
+
+// the core, BIOS and image options of a launch: the site's own files, or the pinned ones
+async function machineFiles(item: Profile): Promise<Pick<V86Options, 'bios' | 'vga_bios'> & Partial<V86Options>> {
+	const network = hostNetwork;
+	const diskOf = async (value: Disk | undefined): Promise<Disk | undefined> => {
+		if (!value?.image) return value;
+		const { image, ...rest } = value;
+		if (!network) return { ...rest, url: `${v86Base()}images/${image}` };
+		const pinned = v86Images[image];
+		if (!pinned) throw new Error(`${image} is not a pinned image`);
+		return { ...rest, buffer: await pinnedFile(pinned, network) };
+	};
+	const [fda, hda, cdrom] = await Promise.all([diskOf(item.fda), diskOf(item.hda), diskOf(item.cdrom)]);
+	const disks = { ...(fda && { fda }), ...(hda && { hda }), ...(cdrom && { cdrom }) };
+	if (!network) {
+		const base = v86Base();
+		return { wasm_path: `${base}v86.wasm`, bios: { url: `${base}bios/seabios.bin` }, vga_bios: { url: `${base}bios/vgabios.bin` }, ...disks };
+	}
+	const [wasm, bios, vgaBios] = await Promise.all([pinnedFile(v86Core.wasm, network), pinnedFile(v86Core.bios, network), pinnedFile(v86Core.vgaBios, network)]);
+	return {
+		wasm_fn: async (imports) => (await WebAssembly.instantiate(wasm, imports)).instance.exports,
+		bios: { buffer: bios },
+		vga_bios: { buffer: vgaBios },
+		...disks,
+	};
+}
+
+// the guest network's relay, as v86 names a wisp server
+const guestRelay = (): string | undefined => {
+	const relay = hostNetwork ? hostRelay : wispEndpoint;
+	return relay && /^wss?:/i.test(relay) ? relay.replace(/^wss:/i, 'wisps:').replace(/^ws:/i, 'wisp:') : undefined;
+};
 
 async function ensureCurl(): Promise<CurlTransport> {
 	if (curlPromise) return curlPromise;
@@ -192,10 +264,10 @@ function installCopyShRelay(): void {
 			const item = request;
 			void (async () => {
 				try {
-					const curl = await ensureCurl();
+					const relayed = await remoteFetch();
 					if (item.abort.signal.aborted) return;
 					const requestBody = body instanceof Document ? new XMLSerializer().serializeToString(body) : body;
-					const response = await curl.fetch(item.url, { method: item.method, headers: { 'Accept-Encoding': 'identity', ...item.headers }, body: requestBody ?? undefined, signal: item.abort.signal });
+					const response = await relayed(item.url, { method: item.method, headers: { 'Accept-Encoding': 'identity', ...item.headers }, body: requestBody ?? undefined, signal: item.abort.signal });
 					item.response = response;
 					setState(xhr, { readyState: 2, status: response.status, statusText: response.statusText });
 					trigger(xhr, 'readystatechange');
@@ -427,23 +499,23 @@ export function launchEmulator(api: DesktopAPI, profile = 'freedos'): void {
 					try {
 						if (item.streamed) {
 							tell(`Connecting to relay for ${item.name}...`);
-							await ensureCurl();
+							await remoteFetch();
 							installCopyShRelay();
 						}
-						const Constructor = await ensureV86();
+						if (hostNetwork) tell(`Fetching the emulator for ${item.name}...`);
+						const [Constructor, files] = await Promise.all([ensureV86(), machineFiles(item)]);
 						if (closed || sequence !== generation) return;
 						resetScreen();
 							resizeToScreen();
-						const { name: _name, category: _category, streamed: _streamed, ...options } = item;
+						const { name: _name, category: _category, streamed: _streamed, fda: _fda, hda: _hda, cdrom: _cdrom, ...options } = item;
+						const relay = guestRelay();
 						const vm = new Constructor({
-							wasm_path: `${v86Base}v86.wasm`,
-							bios: { url: `${v86Base}bios/seabios.bin` },
-							vga_bios: { url: `${v86Base}bios/vgabios.bin` },
+							...files,
 							screen_container: screen,
 							screen: { use_graphical_text: true, scale: 1 },
 							memory_size: 64 * 1024 * 1024,
 							vga_memory_size: 8 * 1024 * 1024,
-							network_relay_url: wispEndpoint.replace(/^wss:/, 'wisps:').replace(/^ws:/, 'wisp:'),
+							...(relay && { network_relay_url: relay }),
 							autostart: true,
 							...options,
 						});
