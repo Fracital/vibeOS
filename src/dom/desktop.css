@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600;700&family=Inconsolata&family=Roboto+Mono&display=swap');
+@import './fonts.css';
 
 /* page-level rules are in page.css, which only vibeOS's own page loads: a host page that
    embeds the desktop keeps its own, so every rule here stays inside the desktop's root */
