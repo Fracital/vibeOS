@@ -115,6 +115,8 @@ function overlayFrame(panel: HTMLElement, frame: () => HTMLIFrameElement, win: H
 			}
 		}
 		style.setProperty('visibility', shown ? 'visible' : 'hidden');
+		// a minimized window's frame is out of reach too, as the window is
+		if(element.inert !== win.hidden)element.inert = win.hidden;
 	};
 	update();
 	return () => {

@@ -282,8 +282,12 @@
 	overflow: visible;
 }
 
+/* a minimized window keeps its layout box, unseen and (inert) out of reach: a frame without
+   one loses its scroll position and its focus */
 .vo-window[hidden] {
-	display: none;
+	visibility: hidden;
+	pointer-events: none;
+	transition: none;
 }
 
 .vo-window.vo-maximized {

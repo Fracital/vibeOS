@@ -155,6 +155,7 @@ export function bootDesktop(host?: BrowserHost): DesktopAPI | null {
 			if(!minimized)return;
 			minimized = false;
 			element.hidden = false;
+			element.inert = false;
 			taskButton?.remove();
 			taskButton = null;
 		};
@@ -194,7 +195,10 @@ export function bootDesktop(host?: BrowserHost): DesktopAPI | null {
 		const minimize = () => {
 			if(closed || minimized)return;
 			minimized = true;
+			// out of sight and reach but still laid out (desktop.css): a frame in it keeps its
+			// document's scroll, focus and selection, which display: none would lose
 			element.hidden = true;
+			element.inert = true;
 			element.classList.remove('vo-active');
 			const entry = create('button', 'vo-task-entry');
 			entry.type = 'button';
