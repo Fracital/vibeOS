@@ -5,7 +5,7 @@ import { openMouseSettings, applyMouseSettings, readMouseSettings } from './mous
 import { cachedSiteInfo, inspectSite, installSite } from './catalog';
 import { bootWelcome, openWelcome } from './welcome';
 import type { AppEntry, BrowserHost, DesktopAPI, DesktopWindow, WindowSpec } from './types';
-import { assetUrl, iconUrl } from './types';
+import { assetUrl, iconUrl, setAssetPages } from './types';
 import './desktop.css';
 import './apps.css';
 import './browser.css';
@@ -41,7 +41,10 @@ export function bootDesktop(host?: BrowserHost): DesktopAPI | null {
 	if(!root)throw new Error('Missing desktop root');
 	if(root.dataset.booted === 'true')return null;
 	root.dataset.booted = 'true';
-	if(host)setBrowserHost(host);
+	if(host){
+		setBrowserHost(host);
+		setAssetPages(host.pages);
+	}
 
 	const wallpaper = create('div', 'vo-wallpaper');
 	wallpaper.id = 'vo-wallpaper';

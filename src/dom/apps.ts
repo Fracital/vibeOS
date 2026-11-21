@@ -967,7 +967,8 @@ function siteIconForMenu(icon: string | undefined, fallback: string): string {
 }
 
 const refreshedBuiltins = new Set<string>();
-const builtinSites = [
+// read when the metadata is refreshed, after the host has named the pages (setAssetPages)
+const builtinSites = () => [
 	'https://cojmar.github.io/nsvg/',
 	'https://canvas.apps.chrome/',
 	'https://duckduckgo.com/',
@@ -978,7 +979,7 @@ const builtinSites = [
 ];
 
 function refreshBuiltinMetadata(): void {
-	for(const value of builtinSites){
+	for(const value of builtinSites()){
 		const url = new URL(value, location.origin).href;
 		if(refreshedBuiltins.has(url))continue;
 		refreshedBuiltins.add(url);
@@ -1125,7 +1126,7 @@ export function createApplications(api: DesktopAPI): AppEntry[] {
 		}));
 	};
 	const game = (name: string, url: string, width: number, height: number): AppEntry => {
-		const info = cachedSiteInfo(new URL(url, location.origin).href);
+		const info = cachedSiteInfo(new URL(assetUrl(url), location.origin).href);
 		const icon = siteIconForMenu(info?.icon, gamesIcon);
 		return {
 			label: name,
